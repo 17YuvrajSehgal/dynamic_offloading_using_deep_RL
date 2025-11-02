@@ -38,7 +38,8 @@ class TaskFactory:
 # ----------------------------
 @dataclass
 class MECServer:
-    #todo missing transmission_power_mec = 100dBm
+    #todo: Since results are small, the paper ignores MEC transmission time and energy. It’s not used in delay/energy formulas, so it can be stored for completeness but not used yet.
+    tx_power_dbm: float = 100.0   # (P_tx^m) transmission_power_mec 100 dBm
     f_available_hz: float = 1e9   #(F^m)_i Max. computation resources   1 GHz effective
     def proc_time(self, cpu_cycles: float) -> float:
         return cpu_cycles / self.f_available_hz
@@ -47,17 +48,18 @@ class MECServer:
 class CloudServer:
     #Cloud configuration
     f_available_hz: float = 10e9       #(F^S)_i Max. computation resources   10 GHz effective
-
     #todo figure out
     fiber_distance_m: float = 50.0     # BS↔Cloud
-
     #Optical Fiber Configuration
     fiber_capacity_bps: float = 100e9  # (C^f) Capacity 100 Gbps (effective after overheads)
     wdm_factor: float = math.sqrt(16)  # (WDM) Modulation | WDM gain for 16-QAM (toy)
     overhead: float = 0.10             # (O^f) Overhead   10%
     fec: float = 0.20                  # (F^f) FEC    20%
-    fiber_prop_speed: float = 2e8      # (v) Propagation Speed | pm/s in fiber
-    #todo missing refractive index
+    refractive_index: float = 1.5      # (p row) Refractive Index of material
+    @property
+    def fiber_prop_speed(self) -> float:
+        # v = c / ρ (c => speed of light 3e8)
+        return 3e8 / self.refractive_index
 
     def proc_time(self, cpu_cycles: float) -> float:
         return cpu_cycles / self.f_available_hz
@@ -76,8 +78,8 @@ class CloudServer:
 # ----------------------------
 @dataclass
 class BaseStation:
-    total_bw_hz: float = 100e6   # 100 MHz
-    noise_w: float = 1e-10       # -100 dBW
+    total_bw_hz: float = 100e6   # (W) Total channel bandwidth 100 MHz
+    noise_w: float = 1e-10       # (N_0) AWGN -100 dBW
     shadow_sigma_db: float = 5.9
 
     def ofdma_subband(self, n_ues: int) -> float:
@@ -95,7 +97,7 @@ class BaseStation:
         return 10 ** (-pl_db / 10.0)
     #todo check this
     def uplink_rate_bps(self, p_tx_w: float, h_lin: float, bw_hz: float) -> float:
-        snr = (p_tx_w * h_lin) / (self.noise_w)
+        snr = (p_tx_w * h_lin) / self.noise_w
         return bw_hz * math.log2(1.0 + max(snr, 1e-12))
     #todo latency calculation for MEC missing
 
@@ -104,23 +106,27 @@ class BaseStation:
 # ----------------------------
 @dataclass
 class UE:
-    #todo add a variable n -> for representing nth UE among total N UE's
-    #todo missing X distance to MEC
-    #todo missing Y distance to MEC
-    #todo missing Transmission power 30dBm
+    n: int = 0          # representing nth UE among total N UE's
+    x_m: float = 0.0    # X distance to MEC
+    y_m: float = 0.0    #Y distance to MEC
     cpu_hz: float = 40e6             # (F^n)_i Max. computation resources 40 MHz effective
     kappa: float = 1e-21             # (K^n)    Energy coefficient of chip
-    #todo missing Residual consumption each t 0.1J
+    residual_j_per_t: float = 0.1  # b_r^n each timestep Residual consumption each t 0.1J
     battery_j: float = 4000.0        # (B^n) Max. Battery (J)
 
-    p_tx_w: float = 1.0              # W (tunable)
+    p_tx_w: float = 1.0              # W Transmission power 30dBm -> converted to 1 Watt (tunable) p_tx_w: float = 10 ** ((p_tx_dbm - 30) / 10)
     f_c_ghz: float = 3.5             # carrier frequency
-    distance_to_bs_m: float = 30.0   # UE↔BS distance
 
+    @property
+    def distance_to_bs_m(self) -> float:
+        return math.sqrt(self.x_m ** 2 + self.y_m ** 2)
+
+    def drain_idle(self):
+        self.battery_j = max(self.battery_j - self.residual_j_per_t, 0)
 
     # Local execution
-    def local_latency(self, cpu_cycles: float) -> float:
-        return cpu_cycles / self.cpu_hz #todo divide by available resources in n UE at time i
+    def local_latency(self, cpu_cycles: float, active_tasks: int = 1) -> float:
+        return cpu_cycles / (self.cpu_hz / active_tasks)#todo divide by available resources in n UE at time i
 
     def local_energy(self, cpu_cycles: float) -> float:
         return self.kappa * (self.cpu_hz ** 2) * cpu_cycles

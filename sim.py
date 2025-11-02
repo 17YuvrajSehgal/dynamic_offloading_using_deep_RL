@@ -3,6 +3,8 @@ from typing import List, Dict
 import numpy as np
 from models import UE, BaseStation, MECServer, CloudServer, TaskFactory
 from policy import Policy, AlwaysLocal, GreedyBySize
+from EnvConfig import EnvConfig
+
 
 @dataclass
 class Metrics:
@@ -12,50 +14,73 @@ class Metrics:
     battery: List[float] = field(default_factory=list)
     offload_ratio: List[float] = field(default_factory=list)
 
+
 class Simulator:
-    def __init__(self, n_ues: int = 20, lam: float = 0.6):
-        self.ues = [UE(distance_to_bs_m=np.random.uniform(5, 100)) for _ in range(n_ues)]
+    def __init__(self, n_ues: int = EnvConfig.NUM_UES, lam: float = 0.6):
+        """Initialize a 3-layer simulation environment."""
+        # === Layers ===
         self.bs = BaseStation()
         self.mec = MECServer()
-        self.cloud = CloudServer()
+        self.cloud = CloudServer(fiber_distance_m=EnvConfig.FIBER_DISTANCE)
+
+        # === Devices ===
+        self.ues = []
+        for i in range(n_ues):
+            x = np.random.uniform(5, 100)
+            y = np.random.uniform(5, 100)
+            self.ues.append(UE(n=i, x_m=x, y_m=y))
+
+        # === Task factory & traffic ===
         self.factory = TaskFactory()
         self.n_ues = n_ues
-        self.lam = lam
+        self.lam = lam  # task arrival rate (Poisson λ)
 
+    # ----------------------------------------------------------
     def step_once(self, policy: Policy) -> Dict[str, float]:
-        # Poisson arrivals (aggregate to one UE chosen uniformly to keep it simple)
+        """Simulate one timestep with a given policy."""
         arrivals = np.random.poisson(self.lam)
         if arrivals == 0:
-            return {"qoe": 0.0, "lat": 0.0, "eng": 0.0, "offload": 0.0, "avg_batt": np.mean([u.battery_j for u in self.ues])}
+            # still drain idle power consumption
+            for ue in self.ues:
+                ue.drain_idle()
+            return {
+                "qoe": 0.0,
+                "lat": 0.0,
+                "eng": 0.0,
+                "offload": 0.0,
+                "avg_batt": np.mean([u.battery_j for u in self.ues]),
+            }
 
         qoe_sum = lat_sum = eng_sum = offload_ct = 0.0
+
         for _ in range(arrivals):
+            # Randomly pick a UE to generate a task
             ue = np.random.choice(self.ues)
             task = self.factory.sample()
-            act = policy.decide(task, ue)
+            action = policy.decide(task, ue)
 
-            if act == "local":
+            # Determine execution site
+            if action == "local":
                 latency = ue.local_latency(task.cpu_cycles)
-                energy  = ue.local_energy(task.cpu_cycles)
-            elif act == "mec":
+                energy = ue.local_energy(task.cpu_cycles)
+            elif action == "mec":
                 latency, energy = ue.offload_to_mec(task, self.bs, self.mec, self.n_ues)
                 offload_ct += 1
             else:  # "cloud"
                 latency, energy = ue.offload_to_cloud(task, self.bs, self.cloud, self.n_ues)
                 offload_ct += 1
 
-            # success if latency <= deadline
+            # QoE calculation
             success = latency <= task.latency_deadline
-            # QoE ~ -energy / remaining_battery; punishment if fail
-            # scale factor keeps values visible
             if success:
                 denom = max(ue.battery_j, 1e-6)
-                qoe = - (energy / denom) * 1e6
+                qoe = - (energy / denom) * 1e6  # scaled
             else:
-                qoe = -0.1  # penalty (η)
+                qoe = EnvConfig.FAIL_PENALTY
 
-            # Update battery
+            # Update UE state
             ue.battery_j = max(ue.battery_j - energy, 0.0)
+            ue.drain_idle()  # apply residual drain every timestep
 
             qoe_sum += qoe
             lat_sum += latency
@@ -70,13 +95,15 @@ class Simulator:
             "avg_batt": avg_batt,
         }
 
+    # ----------------------------------------------------------
     def run(self, T: int, policy: Policy) -> Metrics:
+        """Run full simulation for T timesteps."""
         m = Metrics()
-        for _ in range(T):
-            out = self.step_once(policy)
-            m.qoe.append(out["qoe"])
-            m.latency.append(out["lat"])
-            m.energy.append(out["eng"])
-            m.offload_ratio.append(out["offload"])
-            m.battery.append(out["avg_batt"])
+        for t in range(T):
+            results = self.step_once(policy)
+            m.qoe.append(results["qoe"])
+            m.latency.append(results["lat"])
+            m.energy.append(results["eng"])
+            m.offload_ratio.append(results["offload"])
+            m.battery.append(results["avg_batt"])
         return m
