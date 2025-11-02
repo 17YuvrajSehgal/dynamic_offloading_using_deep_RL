@@ -12,6 +12,14 @@ class AlwaysLocal(Policy):
     def decide(self, task: Task, ue: UE) -> Action:
         return "local"
 
+class AlwaysMEC(Policy):
+    def decide(self, task: Task, ue: UE) -> Action:
+        return "mec"
+
+class AlwaysCloud(Policy):
+    def decide(self, task: Task, ue: UE) -> Action:
+        return "cloud"
+
 class GreedyBySize(Policy):
     """Simple professor-suggested baseline: offload large tasks."""
     def __init__(self, size_threshold_bits: float = 100e3 * 8):
