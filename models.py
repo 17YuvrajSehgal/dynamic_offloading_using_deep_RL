@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Optional, Tuple
 import math
 import random
+#todo pass this as argument so that we can control from simulator
 
 # ----------------------------
 # Task model (Classes 1/2/3)
@@ -15,40 +16,48 @@ class Task:
 
 class TaskFactory:
     """Sampling consistent with the paper's three classes (tunable ranges)."""
-    def sample(self) -> Task:
+    @staticmethod
+    def sample() -> Task:
         cls = random.choices([1, 2, 3], weights=[1, 1, 1], k=1)[0]
         if cls == 1:  # small, strict deadline
-            D = random.uniform(10e3, 40e3) * 8          # bytes→bits
-            phi = D                                    # ≈ 1 cycle/bit (toy; tune)
-            T = 0.5e-3 * (D / 8.0)                     # scales with payload (toy)
+            D_i = random.uniform(10e3, 40e3) * 8          # bytes→bits
+            phi = D_i                                    # ≈ 1 cycle/bit (toy; tune)
+            T_i = 0.5e-3 * (D_i / 8.0)                     # scales with payload (toy)
         elif cls == 2:  # larger compute, some deadline
-            D = random.uniform(20e3, 50e3) * 8
-            phi = 8 * D
-            T = 1e-3 * (D / 8.0)
+            D_i = random.uniform(20e3, 50e3) * 8
+            phi = 8 * D_i
+            T_i = 1e-3 * (D_i / 8.0)
         else:  # cls=3 big/loose
-            D = random.uniform(200e3, 400e3) * 8
-            phi = 8 * D
-            T = 2e-3 * (D / 8.0)
-        return Task(D, phi, T, cls)
+            D_i = random.uniform(200e3, 400e3) * 8
+            phi = 8 * D_i
+            T_i = 2e-3 * (D_i / 8.0)
+        return Task(D_i, phi, T_i, cls)
 
 # ----------------------------
 # Servers
 # ----------------------------
 @dataclass
 class MECServer:
-    f_available_hz: float = 1e9   # 1 GHz effective
+    #todo missing transmission_power_mec = 100dBm
+    f_available_hz: float = 1e9   #(F^m)_i Max. computation resources   1 GHz effective
     def proc_time(self, cpu_cycles: float) -> float:
         return cpu_cycles / self.f_available_hz
 
 @dataclass
 class CloudServer:
-    f_available_hz: float = 10e9  # 10 GHz effective
-    fiber_capacity_bps: float = 100e9  # 100 Gbps (effective after overheads)
-    fiber_prop_speed: float = 2e8      # m/s in fiber
+    #Cloud configuration
+    f_available_hz: float = 10e9       #(F^S)_i Max. computation resources   10 GHz effective
+
+    #todo figure out
     fiber_distance_m: float = 50.0     # BS↔Cloud
-    overhead: float = 0.10
-    fec: float = 0.20
-    wdm_factor: float = math.sqrt(16)  # WDM gain for 16-QAM (toy)
+
+    #Optical Fiber Configuration
+    fiber_capacity_bps: float = 100e9  # (C^f) Capacity 100 Gbps (effective after overheads)
+    wdm_factor: float = math.sqrt(16)  # (WDM) Modulation | WDM gain for 16-QAM (toy)
+    overhead: float = 0.10             # (O^f) Overhead   10%
+    fec: float = 0.20                  # (F^f) FEC    20%
+    fiber_prop_speed: float = 2e8      # (v) Propagation Speed | pm/s in fiber
+    #todo missing refractive index
 
     def proc_time(self, cpu_cycles: float) -> float:
         return cpu_cycles / self.f_available_hz
@@ -95,20 +104,26 @@ class BaseStation:
 # ----------------------------
 @dataclass
 class UE:
-    cpu_hz: float = 40e6             # 40 MHz effective
-    battery_j: float = 4000.0        # J
+    #todo add a variable n -> for representing nth UE among total N UE's
+    #todo missing X distance to MEC
+    #todo missing Y distance to MEC
+    #todo missing Transmission power 30dBm
+    cpu_hz: float = 40e6             # (F^n)_i Max. computation resources 40 MHz effective
+    kappa: float = 1e-21             # (K^n)    Energy coefficient of chip
+    #todo missing Residual consumption each t 0.1J
+    battery_j: float = 4000.0        # (B^n) Max. Battery (J)
+
     p_tx_w: float = 1.0              # W (tunable)
     f_c_ghz: float = 3.5             # carrier frequency
     distance_to_bs_m: float = 30.0   # UE↔BS distance
-    kappa: float = 1e-21             # chip energy coefficient
-    #todo add a variable n -> for representing nth UE among total N UE's
+
 
     # Local execution
     def local_latency(self, cpu_cycles: float) -> float:
         return cpu_cycles / self.cpu_hz #todo divide by available resources in n UE at time i
 
     def local_energy(self, cpu_cycles: float) -> float:
-        return self.kappa * (self.cpu_hz ** 2) * cpu_cycles #todo can make kappa random
+        return self.kappa * (self.cpu_hz ** 2) * cpu_cycles
 
     # Offload to MEC
     def offload_to_mec(self, task: Task, bs: BaseStation, mec: MECServer, n_ues: int) -> Tuple[float, float]:

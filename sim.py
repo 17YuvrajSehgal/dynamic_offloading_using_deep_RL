@@ -13,7 +13,7 @@ class Metrics:
     offload_ratio: List[float] = field(default_factory=list)
 
 class Simulator:
-    def __init__(self, n_ues: int = 10, lam: float = 0.6):
+    def __init__(self, n_ues: int = 20, lam: float = 0.6):
         self.ues = [UE(distance_to_bs_m=np.random.uniform(5, 100)) for _ in range(n_ues)]
         self.bs = BaseStation()
         self.mec = MECServer()
