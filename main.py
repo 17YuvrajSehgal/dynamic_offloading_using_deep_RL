@@ -154,25 +154,68 @@ def summarize_results(result_dir="results"):
     plt.tight_layout()
     plt.show()
 
+def plot_combined_results(result_dir="results"):
+    """
+    Plot all baseline results on a single comparative figure.
+    Each baseline’s QoE, Latency, and Battery are overlaid for visual comparison.
+    """
+    csv_files = [f for f in os.listdir(result_dir) if f.endswith("_metrics.csv")]
+    if not csv_files:
+        print("⚠️ No baseline CSVs found — run experiments first.")
+        return
+
+    plt.figure(figsize=(14, 10))
+
+    # ---------- QoE ----------
+    plt.subplot(3, 1, 1)
+    for file in csv_files:
+        df = pd.read_csv(os.path.join(result_dir, file))
+        label = file.replace("_metrics.csv", "").replace("_", " ").title()
+        plt.plot(smooth(df["QoE"]), label=label)
+    plt.title("QoE Comparison Across Baselines")
+    plt.ylabel("QoE")
+    plt.grid(alpha=0.3)
+    plt.legend()
+
+    # ---------- Latency ----------
+    plt.subplot(3, 1, 2)
+    for file in csv_files:
+        df = pd.read_csv(os.path.join(result_dir, file))
+        label = file.replace("_metrics.csv", "").replace("_", " ").title()
+        plt.plot(smooth(df["Latency"]), label=label)
+    plt.title("Latency Comparison Across Baselines")
+    plt.ylabel("Latency (s)")
+    plt.grid(alpha=0.3)
+
+    # ---------- Battery ----------
+    plt.subplot(3, 1, 3)
+    for file in csv_files:
+        df = pd.read_csv(os.path.join(result_dir, file))
+        label = file.replace("_metrics.csv", "").replace("_", " ").title()
+        plt.plot(df["Battery"], label=label)
+    plt.title("Battery Consumption Comparison")
+    plt.xlabel("Timestep")
+    plt.ylabel("Average Battery (J)")
+    plt.grid(alpha=0.3)
+    plt.legend()
+
+    plt.tight_layout()
+    plt.suptitle("Overall Baseline Performance Comparison", fontsize=14, y=1.02)
+    plt.show()
 
 # ===============================================================
 # === Main Entry Point ==========================================
 # ===============================================================
 if __name__ == "__main__":
-    """
-    Creates one shared environment and runs all baselines under identical
-    network conditions (same UE, MEC, Cloud positions).
-    """
-
     # Create shared simulation environment
     sim = Simulator(n_ues=EnvConfig.NUM_UES, lam=1.0)
     print("✅ Shared simulation environment initialized.")
 
-    # Visualize network layout (once)
+    # Plot layouts
     plot_local_layout(sim)
     plot_global_layout(sim)
 
-    # Define baselines
+    # Baseline definitions
     baselines = [
         ("Always-Local", AlwaysLocal()),
         ("Always-MEC", AlwaysMEC()),
@@ -180,9 +223,12 @@ if __name__ == "__main__":
         ("Greedy-By-Size", GreedyBySize(size_threshold_bits=150e3 * 8)),
     ]
 
-    # Run each baseline on same environment
+    # Run all baselines using shared environment
     for name, policy in baselines:
         run_baseline(name, sim, policy, T=500)
 
-    # Generate comparison summary
+    # Produce summary CSV + comparison bar plots
     summarize_results()
+
+    # Produce a combined performance overlay (like in paper Fig. 8)
+    plot_combined_results()
