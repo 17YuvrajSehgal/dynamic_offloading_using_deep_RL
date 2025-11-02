@@ -84,10 +84,11 @@ class BaseStation:
     def channel_gain_linear(self, fc_ghz: float, d_m: float) -> float:
         pl_db = self.path_loss_abg_db(fc_ghz, d_m) + self.shadow_fading_db()
         return 10 ** (-pl_db / 10.0)
-
+    #todo check this
     def uplink_rate_bps(self, p_tx_w: float, h_lin: float, bw_hz: float) -> float:
         snr = (p_tx_w * h_lin) / (self.noise_w)
         return bw_hz * math.log2(1.0 + max(snr, 1e-12))
+    #todo latency calculation for MEC missing
 
 # ----------------------------
 # UE (device)
@@ -100,13 +101,14 @@ class UE:
     f_c_ghz: float = 3.5             # carrier frequency
     distance_to_bs_m: float = 30.0   # UE↔BS distance
     kappa: float = 1e-21             # chip energy coefficient
+    #todo add a variable n -> for representing nth UE among total N UE's
 
     # Local execution
     def local_latency(self, cpu_cycles: float) -> float:
-        return cpu_cycles / self.cpu_hz
+        return cpu_cycles / self.cpu_hz #todo divide by available resources in n UE at time i
 
     def local_energy(self, cpu_cycles: float) -> float:
-        return self.kappa * (self.cpu_hz ** 2) * cpu_cycles
+        return self.kappa * (self.cpu_hz ** 2) * cpu_cycles #todo can make kappa random
 
     # Offload to MEC
     def offload_to_mec(self, task: Task, bs: BaseStation, mec: MECServer, n_ues: int) -> Tuple[float, float]:
