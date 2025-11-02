@@ -225,7 +225,7 @@ if __name__ == "__main__":
 
     # Run all baselines using shared environment
     for name, policy in baselines:
-        run_baseline(name, sim, policy, T=500)
+        run_baseline(name, sim, policy, T=EnvConfig.TOTAL_TIME_T)
 
     # Produce summary CSV + comparison bar plots
     summarize_results()
