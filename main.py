@@ -1,20 +1,9 @@
 """
 main.py
 --------
-Runs baseline experiments for the 3-layer MEC simulation system.
-Includes:
- - Local and global network layout plots (UEs, MEC, Cloud)
- - Execution of all baseline policies
- - Automatic metric collection and CSV export
- - Combined summary table and comparison plots
-
-Author: [Your Name]
-Course: COSC 5P06 – Mobile Edge Computing Simulation
+Runs all baseline experiments for the 3-layer MEC simulation system
+using a shared simulation environment for consistent comparison.
 """
-
-# ===============================================================
-# === Imports ===================================================
-# ===============================================================
 
 import os
 import numpy as np
@@ -27,31 +16,27 @@ from EnvConfig import EnvConfig
 
 
 # ===============================================================
-# === Utility Functions =========================================
+# === Utility ===================================================
 # ===============================================================
-
 def smooth(vals, k: int = 10):
-    """Applies a simple moving average to smooth noisy metric curves."""
+    """Apply a moving average filter to smooth noisy data."""
     if len(vals) < k:
         return vals
     kernel = np.ones(k) / k
-    return np.convolve(vals, kernel, mode='valid')
+    return np.convolve(vals, kernel, mode="valid")
 
 
 # ===============================================================
 # === Visualization: Network Layouts =============================
 # ===============================================================
-
-def plot_local_layout(sim: Simulator):
-    """Plot the distribution of UEs and the MEC server (zoomed-in local view)."""
+def plot_local_layout(sim):
+    """Plot the distribution of UEs and MEC server (local zoomed view)."""
     plt.figure(figsize=(6, 5))
     xs = [ue.x_m for ue in sim.ues]
     ys = [ue.y_m for ue in sim.ues]
-
     plt.scatter(xs, ys, color="red", label="UEs")
     for i, (x, y) in enumerate(zip(xs, ys)):
         plt.text(x + 1, y + 1, f"{i}", fontsize=8, color="darkred")
-
     plt.scatter([0], [0], color="green", label="MEC", s=80)
     plt.xlabel("X (m)")
     plt.ylabel("Y (m)")
@@ -62,16 +47,14 @@ def plot_local_layout(sim: Simulator):
     plt.show()
 
 
-def plot_global_layout(sim: Simulator):
-    """Plot the overall network including UEs, MEC, and Cloud servers."""
+def plot_global_layout(sim):
+    """Plot the distribution of UEs, MEC, and Cloud (global overview)."""
     plt.figure(figsize=(7, 5))
     xs = [ue.x_m for ue in sim.ues]
     ys = [ue.y_m for ue in sim.ues]
-
     plt.scatter(xs, ys, color="red", label="UEs")
     plt.scatter([0], [0], color="green", label="MEC", s=80)
     plt.scatter([1e6], [1e6], color="blue", label="Cloud", s=80)
-
     plt.xlabel("X (m)")
     plt.ylabel("Y (m)")
     plt.title("UE, MEC, and Cloud Server Distribution (Global View)")
@@ -84,25 +67,18 @@ def plot_global_layout(sim: Simulator):
 # ===============================================================
 # === Simulation Runner =========================================
 # ===============================================================
-
-def run_and_plot(name: str, policy, lam: float = 1.0, T: int = 1000, save_csv: bool = True):
-    """
-    Run a single baseline experiment for the given policy.
-    Produces metric plots and optionally saves CSV results.
-    """
+def run_baseline(name, sim, policy, T=1000, save_csv=True):
+    """Run a single baseline on a shared simulator environment."""
     print(f"\n▶ Running baseline: {name}")
 
-    # --- Initialize simulation environment ---
-    sim = Simulator(n_ues=EnvConfig.NUM_UES, lam=lam)
+    # Reset UE batteries and state before each run (so conditions identical)
+    for ue in sim.ues:
+        ue.battery_j = 4000.0
 
-    # --- Plot system layout once per run ---
-    plot_local_layout(sim)
-    plot_global_layout(sim)
-
-    # --- Run simulation ---
+    # Run the simulation
     metrics = sim.run(T=T, policy=policy)
 
-    # --- Plot metrics ---
+    # Plot results
     fig, axs = plt.subplots(2, 2, figsize=(10, 7))
     axs[0, 0].plot(smooth(metrics.qoe));           axs[0, 0].set_title(f"{name} — QoE")
     axs[0, 1].plot(metrics.battery);               axs[0, 1].set_title("Avg Battery (J)")
@@ -117,7 +93,7 @@ def run_and_plot(name: str, policy, lam: float = 1.0, T: int = 1000, save_csv: b
     plt.tight_layout()
     plt.show()
 
-    # --- Save metrics to CSV ---
+    # Save CSV
     if save_csv:
         os.makedirs("results", exist_ok=True)
         df = pd.DataFrame({
@@ -137,21 +113,13 @@ def run_and_plot(name: str, policy, lam: float = 1.0, T: int = 1000, save_csv: b
 # ===============================================================
 # === Summary Comparison ========================================
 # ===============================================================
-
-def summarize_results(result_dir: str = "results"):
-    """
-    Aggregate all baseline results, compute averages,
-    and produce a summary table and bar-chart comparison.
-    """
-    print("\n📊 Generating combined baseline summary...")
-
+def summarize_results(result_dir="results"):
+    """Aggregate results for all baselines and plot comparison."""
     csv_files = [f for f in os.listdir(result_dir) if f.endswith("_metrics.csv")]
     all_stats = []
-
     for file in csv_files:
         df = pd.read_csv(os.path.join(result_dir, file))
         name = file.replace("_metrics.csv", "").replace("_", " ").title()
-
         stats = {
             "Baseline": name,
             "Mean_QoE": df["QoE"].mean(),
@@ -161,13 +129,11 @@ def summarize_results(result_dir: str = "results"):
             "Mean_Offload_Ratio": df["OffloadRatio"].mean(),
         }
         all_stats.append(stats)
-
     summary_df = pd.DataFrame(all_stats)
-    summary_path = os.path.join(result_dir, "baseline_summary.csv")
-    summary_df.to_csv(summary_path, index=False)
-    print(f"✅ Combined summary saved to {summary_path}")
+    summary_df.to_csv(os.path.join(result_dir, "baseline_summary.csv"), index=False)
+    print("✅ Combined summary saved to results/baseline_summary.csv")
 
-    # --- Plot comparison chart ---
+    # Plot bar charts
     fig, axs = plt.subplots(1, 3, figsize=(12, 4))
     x = summary_df["Baseline"]
 
@@ -192,15 +158,21 @@ def summarize_results(result_dir: str = "results"):
 # ===============================================================
 # === Main Entry Point ==========================================
 # ===============================================================
-
 if __name__ == "__main__":
     """
-    Runs all baseline experiments and produces:
-      - Local/global layout plots
-      - Per-baseline metric graphs and CSVs
-      - Combined summary table and comparison figure
+    Creates one shared environment and runs all baselines under identical
+    network conditions (same UE, MEC, Cloud positions).
     """
 
+    # Create shared simulation environment
+    sim = Simulator(n_ues=EnvConfig.NUM_UES, lam=1.0)
+    print("✅ Shared simulation environment initialized.")
+
+    # Visualize network layout (once)
+    plot_local_layout(sim)
+    plot_global_layout(sim)
+
+    # Define baselines
     baselines = [
         ("Always-Local", AlwaysLocal()),
         ("Always-MEC", AlwaysMEC()),
@@ -208,7 +180,9 @@ if __name__ == "__main__":
         ("Greedy-By-Size", GreedyBySize(size_threshold_bits=150e3 * 8)),
     ]
 
+    # Run each baseline on same environment
     for name, policy in baselines:
-        run_and_plot(name, policy, lam=1.0, T=500)
+        run_baseline(name, sim, policy, T=500)
 
+    # Generate comparison summary
     summarize_results()
