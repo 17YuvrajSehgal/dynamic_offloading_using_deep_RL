@@ -11,7 +11,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from sim import Simulator
-from policy import AlwaysLocal, AlwaysMEC, AlwaysCloud, GreedyBySize
+from policy import AlwaysLocal, AlwaysMEC, AlwaysCloud, GreedyBySize, RandomPolicy
 from EnvConfig import EnvConfig
 
 
@@ -221,6 +221,7 @@ if __name__ == "__main__":
         ("Always-MEC", AlwaysMEC()),
         ("Always-Cloud", AlwaysCloud()),
         ("Greedy-By-Size", GreedyBySize(size_threshold_bits=150e3 * 8)),
+        ("Random-Policy", RandomPolicy()),
     ]
 
     # Run all baselines using shared environment

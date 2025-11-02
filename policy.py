@@ -1,3 +1,4 @@
+import random
 from abc import ABC, abstractmethod
 from typing import Literal
 from models import Task, UE, BaseStation, MECServer, CloudServer
@@ -19,6 +20,11 @@ class AlwaysMEC(Policy):
 class AlwaysCloud(Policy):
     def decide(self, task: Task, ue: UE) -> Action:
         return "cloud"
+
+class RandomPolicy(Policy):
+    """Randomly selects between local, MEC, or Cloud for each task."""
+    def decide(self, task: Task, ue: UE) -> Action:
+        return random.choice(["local", "mec", "cloud"])
 
 class GreedyBySize(Policy):
     """Simple professor-suggested baseline: offload large tasks."""
