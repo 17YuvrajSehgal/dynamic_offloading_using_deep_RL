@@ -55,7 +55,7 @@ class Simulator:
 
         for _ in range(arrivals):
             # Randomly pick a UE to generate a task
-            ue = np.random.choice(self.ues)
+            ue = UE(np.random.choice(self.ues))
             task = self.factory.sample()
             action = policy.decide(task, ue)
 
