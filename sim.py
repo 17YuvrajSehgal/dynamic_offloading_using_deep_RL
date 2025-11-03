@@ -22,7 +22,7 @@ class Simulator:
         # === Layers ===
         self.bs = BaseStation()
         self.mec = MECServer()
-        self.cloud = CloudServer(fiber_distance_m=EnvConfig.FIBER_DISTANCE)
+        self.cloud = CloudServer(fiber_distance_m=EnvConfig.CLOUD_FIBER_DISTANCE)
 
         # === Devices ===
         self.ues = []
