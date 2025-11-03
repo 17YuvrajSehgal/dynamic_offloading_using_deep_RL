@@ -15,19 +15,39 @@ class Task:
     cls: int                  # {1: delay-sensitive, 2: energy-sensitive, 3: insensitive}
 
 class TaskFactory:
-    """Sampling consistent with the paper's three classes (tunable ranges)."""
-    @staticmethod
-    def sample() -> Task:
-        cls = random.choices([1, 2, 3], weights=[1, 1, 1], k=1)[0]
-        if cls == 1:  # small, strict deadline
-            D_i = random.uniform(10e3, 40e3) * 8          # bytes→bits
-            phi = D_i                                    # ≈ 1 cycle/bit (toy; tune)
-            T_i = 0.5e-3 * (D_i / 8.0)                     # scales with payload (toy)
-        elif cls == 2:  # larger compute, some deadline
+    """
+    Factory for generating tasks according to the three task classes
+    described in the paper. Supports both random sampling and
+    class-specific generation.
+    """
+
+    def __init__(self, mode: str = "random", fixed_class: int = None):
+        """
+        mode: "random" → choose among classes 1/2/3 randomly (default)
+              "fixed"  → always generate tasks of `fixed_class`
+        fixed_class: int ∈ {1, 2, 3} when mode="fixed"
+        """
+        self.mode = mode
+        self.fixed_class = fixed_class
+
+    def sample(self) -> Task:
+        """Generate a single task according to the selected mode."""
+        # Choose task class based on mode
+        if self.mode == "fixed" and self.fixed_class in [1, 2, 3]:
+            cls = self.fixed_class
+        else:
+            cls = random.choices([1, 2, 3], weights=[1, 1, 1], k=1)[0]
+
+        # --- Class-specific parameter generation ---
+        if cls == 1:  # Delay-sensitive: small, strict deadline
+            D_i = random.uniform(10e3, 40e3) * 8  # bytes→bits
+            phi = D_i                             # ≈ 1 cycle/bit (light compute)
+            T_i = 0.5e-3 * (D_i / 8.0)            # short deadline
+        elif cls == 2:  # Energy-sensitive: medium, moderate deadline
             D_i = random.uniform(20e3, 50e3) * 8
             phi = 8 * D_i
             T_i = 1e-3 * (D_i / 8.0)
-        else:  # cls=3 big/loose
+        else:  # cls == 3 → insensitive (large, loose deadline)
             D_i = random.uniform(200e3, 400e3) * 8
             phi = 8 * D_i
             T_i = 2e-3 * (D_i / 8.0)

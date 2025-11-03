@@ -32,7 +32,7 @@ class Simulator:
             self.ues.append(UE(n=i, x_m=x, y_m=y))
 
         # === Task factory & traffic ===
-        self.factory = TaskFactory()
+        self.factory = TaskFactory(mode="random", fixed_class=None)
         self.n_ues = n_ues
         self.lam = lam  # task arrival rate (Poisson λ)
 
@@ -56,7 +56,7 @@ class Simulator:
 
         for _ in range(arrivals):
             # Randomly pick a UE to generate a task
-            ue = np.random.choice(self.ues)
+            ue = UE(np.random.choice(self.ues))
             task = self.factory.sample()
             action = policy.decide(task, ue)
 
