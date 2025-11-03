@@ -4,7 +4,6 @@ import numpy as np
 from models import UE, BaseStation, MECServer, CloudServer, TaskFactory
 from policy import Policy, AlwaysLocal, GreedyBySize
 from EnvConfig import EnvConfig
-from scipy.ndimage import uniform_filter1d
 
 
 @dataclass
@@ -56,7 +55,7 @@ class Simulator:
 
         for _ in range(arrivals):
             # Randomly pick a UE to generate a task
-            ue = UE(np.random.choice(self.ues))
+            ue = np.random.choice(self.ues)
             task = self.factory.sample()
             action = policy.decide(task, ue)
 
@@ -71,19 +70,13 @@ class Simulator:
                 latency, energy = ue.offload_to_cloud(task, self.bs, self.cloud, self.n_ues)
                 offload_ct += 1
 
-            # QoE Calculation (Eq. 18 from paper)
+            # QoE calculation
             success = latency <= task.latency_deadline
-
             if success:
-                # Compute normalized energy fraction depending on offload site (α)
-                if action == "local":
-                    qoe = - energy / ue.battery_j  # e_cl_i / B^n
-                elif action == "mec":
-                    qoe = - energy / ue.battery_j  # e_m_i / B^n
-                elif action == "cloud":
-                    qoe = - energy / ue.battery_j  # e_c_i / B^n
+                denom = max(ue.battery_j, 1e-6)
+                qoe = - (energy / denom) * 1e6  # scaled
             else:
-                qoe = EnvConfig.FAIL_PENALTY  # η
+                qoe = EnvConfig.FAIL_PENALTY
 
             # Update UE state
             ue.battery_j = max(ue.battery_j - energy, 0.0)
@@ -104,6 +97,7 @@ class Simulator:
 
     # ----------------------------------------------------------
     def run(self, T: int, policy: Policy) -> Metrics:
+        """Run full simulation for T timesteps."""
         m = Metrics()
         for t in range(T):
             results = self.step_once(policy)
@@ -112,7 +106,4 @@ class Simulator:
             m.energy.append(results["eng"])
             m.offload_ratio.append(results["offload"])
             m.battery.append(results["avg_batt"])
-
-        # Optional smoothing for QoE curves
-        m.qoe = list(uniform_filter1d(m.qoe, size=10))
         return m
