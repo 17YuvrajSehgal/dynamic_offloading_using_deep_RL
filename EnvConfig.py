@@ -20,7 +20,6 @@ class EnvConfig:
     BS_NOISE = 1e-10
     BS_SHADOW_SIGMA_DB = 5.9
 
-
     #UE CONFIG
     NUM_UES = 20
     UE_MAX_COMPUTATION_RESOURCES = 40e6

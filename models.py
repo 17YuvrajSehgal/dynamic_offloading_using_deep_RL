@@ -63,8 +63,9 @@ class TaskFactory:
 @dataclass
 class MECServer:
     #Since results are small, the paper ignores MEC transmission time and energy. It’s not used in delay/energy formulas, so it can be stored for completeness but not used yet.
-    tx_power_dbm: float = EnvConfig.MEC_TRANSMISSION_POWER   # (P_tx^m) transmission_power_mec 100 dBm
-    f_available_hz: float = EnvConfig.MEC_MAX_COMPUTATION_RESOURCES   #(F^m)_i Max. computation resources   1 GHz effective
+    tx_power_dbm: float = EnvConfig.MEC_TRANSMISSION_POWER              # (P_tx^m) transmission_power_mec 100 dBm
+    f_available_hz: float = EnvConfig.MEC_MAX_COMPUTATION_RESOURCES     #(F^m)_i Max. computation resources   1 GHz effective
+
     def proc_time(self, cpu_cycles: float) -> float:
         return cpu_cycles / self.f_available_hz
 
@@ -72,13 +73,14 @@ class MECServer:
 class CloudServer:
     #Cloud configuration
     f_available_hz: float = EnvConfig.CLOUD_TRANSMISSION_POWER       #(F^S)_i Max. computation resources   10 GHz effective
+
     #Optical Fiber Configuration
-    fiber_distance_m: float = EnvConfig.CLOUD_FIBER_DISTANCE     # BS↔Cloud
-    fiber_capacity_bps: float = EnvConfig.OPTICAL_FIBER_CAPACITY  # (C^f) Capacity 100 Gbps (effective after overheads)
-    wdm_factor: float = math.sqrt(EnvConfig.OPTICAL_FIBER_WDM)  # (WDM) Modulation | WDM gain for 16-QAM (toy)
-    overhead: float = EnvConfig.OPTICAL_FIBER_OVERHEAD             # (O^f) Overhead   10%
-    fec: float = EnvConfig.OPTICAL_FIBER_FEC                  # (F^f) FEC    20%
-    refractive_index: float = EnvConfig.OPTICAL_FIBER_REFRACTIVE_INDEX     # (p row) Refractive Index of material
+    fiber_distance_m: float = EnvConfig.CLOUD_FIBER_DISTANCE            # BS↔Cloud
+    fiber_capacity_bps: float = EnvConfig.OPTICAL_FIBER_CAPACITY        # (C^f) Capacity 100 Gbps (effective after overheads)
+    wdm_factor: float = math.sqrt(EnvConfig.OPTICAL_FIBER_WDM)          # (WDM) Modulation | WDM gain for 16-QAM (toy)
+    overhead: float = EnvConfig.OPTICAL_FIBER_OVERHEAD                  # (O^f) Overhead   10%
+    fec: float = EnvConfig.OPTICAL_FIBER_FEC                            # (F^f) FEC    20%
+    refractive_index: float = EnvConfig.OPTICAL_FIBER_REFRACTIVE_INDEX  # (p row) Refractive Index of material
 
 
     @property
@@ -134,10 +136,10 @@ class UE:
     n: int = 0          # representing nth UE among total N UE's
     x_m: float = 0.0    # X distance to MEC
     y_m: float = 0.0    #Y distance to MEC
-    cpu_hz: float = EnvConfig.UE_MAX_COMPUTATION_RESOURCES             # (F^n)_i Max. computation resources 40 MHz effective
-    kappa: float = EnvConfig.UE_KAPPA             # (K^n)    Energy coefficient of chip
-    residual_j_per_t: float = EnvConfig.UE_RESIDUAL_J_PER_T  # b_r^n each timestep Residual consumption each t 0.1J
-    battery_j: float = EnvConfig.UE_MAX_BATTERY        # (B^n) Max. Battery (J)
+    cpu_hz: float = EnvConfig.UE_MAX_COMPUTATION_RESOURCES              # (F^n)_i Max. computation resources 40 MHz effective
+    kappa: float = EnvConfig.UE_KAPPA                                   # (K^n)    Energy coefficient of chip
+    residual_j_per_t: float = EnvConfig.UE_RESIDUAL_J_PER_T             # b_r^n each timestep Residual consumption each t 0.1J
+    battery_j: float = EnvConfig.UE_MAX_BATTERY                         # (B^n) Max. Battery (J)
 
     p_tx_w: float = EnvConfig.UE_TRANSMISSION_POWER             # W Transmission power 30dBm -> converted to 1 Watt (tunable) p_tx_w: float = 10 ** ((p_tx_dbm - 30) / 10)
     f_c_ghz: float = EnvConfig.UE_CARRIER_FREQUENCY             # carrier frequency
