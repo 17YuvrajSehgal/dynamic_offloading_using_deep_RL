@@ -25,45 +25,6 @@ def smooth(vals, k: int = 10):
     kernel = np.ones(k) / k
     return np.convolve(vals, kernel, mode="valid")
 
-
-# ===============================================================
-# === Visualization: Network Layouts =============================
-# ===============================================================
-def plot_local_layout(sim):
-    """Plot the distribution of UEs and MEC server (local zoomed view)."""
-    plt.figure(figsize=(6, 5))
-    xs = [ue.x_m for ue in sim.ues]
-    ys = [ue.y_m for ue in sim.ues]
-    plt.scatter(xs, ys, color="red", label="UEs")
-    for i, (x, y) in enumerate(zip(xs, ys)):
-        plt.text(x + 1, y + 1, f"{i}", fontsize=8, color="darkred")
-    plt.scatter([0], [0], color="green", label="MEC", s=80)
-    plt.xlabel("X (m)")
-    plt.ylabel("Y (m)")
-    plt.title("UE and MEC Distribution (Local View)")
-    plt.legend()
-    plt.grid(alpha=0.3)
-    plt.tight_layout()
-    plt.show()
-
-
-def plot_global_layout(sim):
-    """Plot the distribution of UEs, MEC, and Cloud (global overview)."""
-    plt.figure(figsize=(7, 5))
-    xs = [ue.x_m for ue in sim.ues]
-    ys = [ue.y_m for ue in sim.ues]
-    plt.scatter(xs, ys, color="red", label="UEs")
-    plt.scatter([0], [0], color="green", label="MEC", s=80)
-    plt.scatter([1e6], [1e6], color="blue", label="Cloud", s=80)
-    plt.xlabel("X (m)")
-    plt.ylabel("Y (m)")
-    plt.title("UE, MEC, and Cloud Server Distribution (Global View)")
-    plt.legend()
-    plt.grid(alpha=0.3)
-    plt.tight_layout()
-    plt.show()
-
-
 # ===============================================================
 # === Simulation Runner =========================================
 # ===============================================================
@@ -151,6 +112,43 @@ def summarize_results(result_dir="results"):
         ax.grid(axis="y", alpha=0.3)
 
     plt.suptitle("Baseline Strategy Comparison", fontsize=13)
+    plt.tight_layout()
+    plt.show()
+
+# ===============================================================
+# === Visualization: Network Layouts =============================
+# ===============================================================
+def plot_local_layout(sim):
+    """Plot the distribution of UEs and MEC server (local zoomed view)."""
+    plt.figure(figsize=(6, 5))
+    xs = [ue.x_m for ue in sim.ues]
+    ys = [ue.y_m for ue in sim.ues]
+    plt.scatter(xs, ys, color="red", label="UEs")
+    for i, (x, y) in enumerate(zip(xs, ys)):
+        plt.text(x + 1, y + 1, f"{i}", fontsize=8, color="darkred")
+    plt.scatter([0], [0], color="green", label="MEC", s=80)
+    plt.xlabel("X (m)")
+    plt.ylabel("Y (m)")
+    plt.title("UE and MEC Distribution (Local View)")
+    plt.legend()
+    plt.grid(alpha=0.3)
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_global_layout(sim):
+    """Plot the distribution of UEs, MEC, and Cloud (global overview)."""
+    plt.figure(figsize=(7, 5))
+    xs = [ue.x_m for ue in sim.ues]
+    ys = [ue.y_m for ue in sim.ues]
+    plt.scatter(xs, ys, color="red", label="UEs")
+    plt.scatter([0], [0], color="green", label="MEC", s=80)
+    plt.scatter([1e6], [1e6], color="blue", label="Cloud", s=80)
+    plt.xlabel("X (m)")
+    plt.ylabel("Y (m)")
+    plt.title("UE, MEC, and Cloud Server Distribution (Global View)")
+    plt.legend()
+    plt.grid(alpha=0.3)
     plt.tight_layout()
     plt.show()
 
