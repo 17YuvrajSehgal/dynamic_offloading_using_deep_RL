@@ -34,3 +34,4 @@ class EnvConfig:
 
     #SIMULATION
     TOTAL_TIME_T = 2000
+    TASK_ARRIVAL_RATE = 1

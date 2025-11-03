@@ -34,7 +34,7 @@ class Simulator:
         # === Task factory & traffic ===
         self.factory = TaskFactory(mode="random", fixed_class=None)
         self.n_ues = n_ues
-        self.lam = lam  # task arrival rate (Poisson λ)
+        self.lam = EnvConfig.TASK_ARRIVAL_RATE  # task arrival rate (Poisson λ)
 
     # ----------------------------------------------------------
     def step_once(self, policy: Policy) -> Dict[str, float]:
