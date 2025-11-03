@@ -4,6 +4,7 @@ import numpy as np
 from models import UE, BaseStation, MECServer, CloudServer, TaskFactory
 from policy import Policy, AlwaysLocal, GreedyBySize
 from EnvConfig import EnvConfig
+from scipy.ndimage import uniform_filter1d
 
 
 @dataclass
@@ -70,13 +71,19 @@ class Simulator:
                 latency, energy = ue.offload_to_cloud(task, self.bs, self.cloud, self.n_ues)
                 offload_ct += 1
 
-            # QoE calculation
+            # QoE Calculation (Eq. 18 from paper)
             success = latency <= task.latency_deadline
+
             if success:
-                denom = max(ue.battery_j, 1e-6)
-                qoe = - (energy / denom) * 1e6  # scaled
+                # Compute normalized energy fraction depending on offload site (α)
+                if action == "local":
+                    qoe = - energy / ue.battery_j  # e_cl_i / B^n
+                elif action == "mec":
+                    qoe = - energy / ue.battery_j  # e_m_i / B^n
+                elif action == "cloud":
+                    qoe = - energy / ue.battery_j  # e_c_i / B^n
             else:
-                qoe = EnvConfig.FAIL_PENALTY
+                qoe = EnvConfig.FAIL_PENALTY  # η
 
             # Update UE state
             ue.battery_j = max(ue.battery_j - energy, 0.0)
@@ -97,7 +104,6 @@ class Simulator:
 
     # ----------------------------------------------------------
     def run(self, T: int, policy: Policy) -> Metrics:
-        """Run full simulation for T timesteps."""
         m = Metrics()
         for t in range(T):
             results = self.step_once(policy)
@@ -106,4 +112,7 @@ class Simulator:
             m.energy.append(results["eng"])
             m.offload_ratio.append(results["offload"])
             m.battery.append(results["avg_batt"])
+
+        # Optional smoothing for QoE curves
+        m.qoe = list(uniform_filter1d(m.qoe, size=10))
         return m
