@@ -94,7 +94,9 @@ class Simulator:
             lat_sum += latency
             eng_sum += energy
 
-        avg_batt = float(np.mean([u.battery_j for u in self.ues]))
+        alive_ues = [u.battery_j for u in self.ues if u.battery_j > 0]
+        avg_batt = float(np.mean(alive_ues)) if alive_ues else 0.0
+
         return {
             "qoe": qoe_sum / max(arrivals, 1),
             "lat": lat_sum / max(arrivals, 1),

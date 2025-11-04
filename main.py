@@ -32,9 +32,9 @@ def run_baseline(name, sim, policy, T=1000, save_csv=True):
     """Run a single baseline on a shared simulator environment."""
     print(f"\n▶ Running baseline: {name}")
 
-    # Reset UE batteries and state before each run (so conditions identical)
+    # Reset UE full state before each baseline
     for ue in sim.ues:
-        ue.battery_j = 4000.0
+        ue.battery_j = EnvConfig.UE_MAX_BATTERY
 
     # Run the simulation
     metrics = sim.run(T=T, policy=policy)

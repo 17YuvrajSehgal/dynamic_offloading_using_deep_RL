@@ -149,7 +149,8 @@ class UE:
         return math.sqrt(self.x_m ** 2 + self.y_m ** 2)
 
     def drain_idle(self):
-        self.battery_j = max(self.battery_j - self.residual_j_per_t, 0)
+        if self.battery_j > 0:
+            self.battery_j = max(self.battery_j - self.residual_j_per_t, 0)
 
     # Local execution
     def local_latency(self, cpu_cycles: float, active_tasks: int = 1) -> float:
