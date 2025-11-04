@@ -60,8 +60,14 @@ class Simulator:
             task = self.factory.sample()
             action = policy.decide(task, ue)
 
-            # Skip dead UEs (no remaining battery)
+            # Handle dead UE (no remaining battery)
             if ue.battery_j <= 0.0:
+                # UE cannot process or offload — apply punishment
+                qoe = EnvConfig.FAIL_PENALTY  # η = -0.1
+                latency = task.latency_deadline * 10.0  # symbolic large delay
+                energy = 0.0
+                lat_sum += latency
+                qoe_sum += qoe
                 continue
 
             # Determine execution site
@@ -75,16 +81,19 @@ class Simulator:
                 latency, energy = ue.offload_to_cloud(task, self.bs, self.cloud, self.n_ues)
                 offload_ct += 1
 
-            # QoE Calculation (Eq. 18 from paper)
+            # ---------------- QoE Calculation (Eq. 18 with normalization & bounds) ----------------
             success = latency <= task.latency_deadline
+            B_max = EnvConfig.UE_MAX_BATTERY  # constant normalization (4000 J)
 
             if success:
-                # Compute normalized energy fraction depending on offload site (α)
-                eps = 1e-6  # avoid division by zero
-                denom = max(ue.battery_j, eps)
-                qoe = -energy / denom
+                # Normalize energy by full battery, scale to [-0.1, 0]
+                qoe_raw = - (energy / B_max) * 1000  # scale factor chosen to give visible decay
+                # Clip within [FAIL_PENALTY, 0]
+                qoe = max(EnvConfig.FAIL_PENALTY, min(0.0, qoe_raw))
             else:
-                qoe = EnvConfig.FAIL_PENALTY  # η
+                # Missed deadline → fixed penalty
+                qoe = EnvConfig.FAIL_PENALTY  # η = −0.1
+            # ------------------------------------------------------------------------------
 
             # Update UE state (battery drain)
             ue.battery_j = max(ue.battery_j - energy, 0.0)
