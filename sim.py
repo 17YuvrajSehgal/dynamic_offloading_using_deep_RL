@@ -60,6 +60,10 @@ class Simulator:
             task = self.factory.sample()
             action = policy.decide(task, ue)
 
+            # Skip dead UEs (no remaining battery)
+            if ue.battery_j <= 0.0:
+                continue
+
             # Determine execution site
             if action == "local":
                 latency = ue.local_latency(task.cpu_cycles)
@@ -76,18 +80,15 @@ class Simulator:
 
             if success:
                 # Compute normalized energy fraction depending on offload site (α)
-                if action == "local":
-                    qoe = - energy / ue.battery_j  # e_cl_i / B^n
-                elif action == "mec":
-                    qoe = - energy / ue.battery_j  # e_m_i / B^n
-                elif action == "cloud":
-                    qoe = - energy / ue.battery_j  # e_c_i / B^n
+                eps = 1e-6  # avoid division by zero
+                denom = max(ue.battery_j, eps)
+                qoe = -energy / denom
             else:
                 qoe = EnvConfig.FAIL_PENALTY  # η
 
-            # Update UE state
+            # Update UE state (battery drain)
             ue.battery_j = max(ue.battery_j - energy, 0.0)
-            ue.drain_idle()  # apply residual drain every timestep
+            ue.drain_idle()  # apply residual drain each timestep
 
             qoe_sum += qoe
             lat_sum += latency
