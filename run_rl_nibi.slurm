@@ -4,7 +4,7 @@
 #SBATCH --gres=gpu:1                        # 1 GPU
 #SBATCH --mem=16G                           # Memory for CPU side
 #SBATCH --cpus-per-task=2                   # CPU cores
-#SBATCH --time=00:2:00                     # Max runtime (hh:mm:ss)
+#SBATCH --time=02:00:00                     # Max runtime (hh:mm:ss)
 #SBATCH --output=logs/rl_%j.out             # STDOUT (%j = job ID)
 #SBATCH --error=logs/rl_%j.err              # STDERR
 
