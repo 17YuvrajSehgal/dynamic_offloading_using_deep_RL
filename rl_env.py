@@ -95,13 +95,14 @@ class OffloadEnv:
                 task, self.bs, self.cloud, n_ues=EnvConfig.NUM_UES
             )
 
-        # QoE-style reward
+        # QoE-style reward (paper: r = -E/B_n for successful tasks)
         success = latency <= task.latency_deadline
         if success:
-            qoe_raw = -(energy / self.batt_max) * 1000.0
-            reward = max(EnvConfig.FAIL_PENALTY, min(0.0, qoe_raw))
+            # in [-1, 0], more negative = more energy used
+            reward = -(energy / self.batt_max)
         else:
-            reward = EnvConfig.FAIL_PENALTY
+            # fixed failure penalty
+            reward = EnvConfig.FAIL_PENALTY  # e.g. -0.1
 
         # Update UE battery + idle drain
         ue.battery_j = max(ue.battery_j - energy, 0.0)

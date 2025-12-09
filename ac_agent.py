@@ -99,13 +99,17 @@ class ActorCriticAgent:
         critic_loss = td_error.pow(2).mean()
         self.optim_critic.zero_grad()
         critic_loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.critic.parameters(), max_norm=5.0)
         self.optim_critic.step()
 
         # ---- Actor loss ----
         probs = self.actor(s)
         dist = torch.distributions.Categorical(probs=probs)
         logp = dist.log_prob(torch.tensor(action, device=self.device))
-        actor_loss = -(logp * td_error.detach())
+        entropy = dist.entropy()
+        entropy_coeff = 0.01  # you can tune this
+        actor_loss = -(logp * td_error.detach() + entropy_coeff * entropy)
         self.optim_actor.zero_grad()
         actor_loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.actor.parameters(), max_norm=5.0)
         self.optim_actor.step()

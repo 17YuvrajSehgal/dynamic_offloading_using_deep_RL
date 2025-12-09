@@ -9,6 +9,7 @@ Usage
 
 This will run a small training loop and print episode rewards.
 """
+import os
 
 import numpy as np
 import torch
@@ -30,7 +31,7 @@ def make_env() -> OffloadEnv:
 
 
 def train(
-    episodes: int = 50,
+    episodes: int = 300,
     gamma: float = 0.99,
     lr_actor: float = 1e-5,
     lr_critic: float = 1e-4,
@@ -68,14 +69,21 @@ def train(
             steps += 1
 
         all_returns.append(ep_return)
-        print(
-            f"Episode {ep+1:03d} | steps={steps:4d} | "
-            f"return={ep_return:8.3f} | last_batt={info.get('battery', 0):7.2f}"
-        )
+        if (ep + 1) % 10 == 0 or ep == 0:
+            print(
+                f"Episode {ep + 1:03d} | steps={steps:4d} | "
+                f"return={ep_return:8.3f} | last_batt={info.get('battery', 0):7.2f}"
+            )
 
     # Simple summary
     print("\nTraining finished.")
     print("Avg return over last 10 episodes:", np.mean(all_returns[-10:]))
+
+    os.makedirs("results", exist_ok=True)
+    torch.save(agent.actor.state_dict(), "results/actor_offloading.pt")
+    torch.save(agent.critic.state_dict(), "results/critic_offloading.pt")
+    print("Saved actor/critic to results/ directory.")
+
     return all_returns
 
 
