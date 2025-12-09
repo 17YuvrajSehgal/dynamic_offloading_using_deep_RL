@@ -80,7 +80,30 @@ class OffloadEnv:
 
         # If UE already dead, give penalty and end episode
         if ue.battery_j <= 0:
-            return self._build_state(), EnvConfig.FAIL_PENALTY, True, {"dead": True}
+            # still advance step counter
+            self.step_count += 1
+
+            reward = EnvConfig.FAIL_PENALTY
+            done = self.step_count >= self.max_steps
+
+            # Fake / default values for logging
+            latency = 0.0
+            energy = 0.0
+            deadline = 0.0
+
+            self.current_task = self.task_factory.sample()
+            next_state = self._build_state()
+
+            info = {
+                "latency": latency,
+                "energy": energy,
+                "success": False,
+                "battery": ue.battery_j,
+                "task_class": -1,
+                "deadline": deadline,
+                "dead": True,
+            }
+            return next_state, float(reward), bool(done), info
 
         # --- compute latency and energy using existing model methods ---
         if action == 0:
@@ -119,6 +142,7 @@ class OffloadEnv:
             "success": success,
             "battery": ue.battery_j,
             "task_class": task.cls,
+            "deadline": task.latency_deadline,
         }
         return next_state, float(reward), bool(done), info
 
