@@ -3,7 +3,7 @@
 #SBATCH --account=def-naser2                # Your PI account
 #SBATCH --gres=gpu:1                        # 1 GPU
 #SBATCH --mem=16G                           # Memory for CPU side
-#SBATCH --cpus-per-task=4                   # CPU cores
+#SBATCH --cpus-per-task=2                   # CPU cores
 #SBATCH --time=00:2:00                     # Max runtime (hh:mm:ss)
 #SBATCH --output=logs/rl_%j.out             # STDOUT (%j = job ID)
 #SBATCH --error=logs/rl_%j.err              # STDERR
