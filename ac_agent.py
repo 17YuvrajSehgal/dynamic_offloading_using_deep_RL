@@ -51,8 +51,10 @@ class ActorCriticAgent:
         gamma: float = 0.99,
         lr_actor: float = 1e-5,
         lr_critic: float = 1e-4,
-        device: str = "cpu",
+        device: str = None,
     ):
+        # Auto-select GPU when available unless explicitly overridden.
+        device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         self.device = torch.device(device)
         self.actor = ActorNet(state_dim, n_actions).to(self.device)
         self.critic = CriticNet(state_dim).to(self.device)

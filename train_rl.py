@@ -37,6 +37,7 @@ def train(
     device: str = None,
 ):
     device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"[train_rl] Using device: {device}")
     env = make_env()
     init_state = env.reset()
     state_dim = init_state.shape[0]

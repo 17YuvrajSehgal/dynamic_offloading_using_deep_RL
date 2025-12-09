@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 from typing import Tuple, Optional
 
 from EnvConfig import EnvConfig
@@ -157,3 +158,7 @@ class OffloadEnv:
             dtype=np.float32,
         )
         return state
+
+    # Small helper to move the current state to a torch tensor on a target device.
+    def state_tensor(self, device: str = "cpu") -> torch.Tensor:
+        return torch.tensor(self._build_state(), dtype=torch.float32, device=device)
