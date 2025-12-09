@@ -2,9 +2,9 @@
 #SBATCH --job-name=rl_offloading            # Job name
 #SBATCH --account=def-naser2                # Your PI account
 #SBATCH --gres=gpu:1                        # 1 GPU
-#SBATCH --mem=16G                           # Memory for CPU side
-#SBATCH --cpus-per-task=2                   # CPU cores
-#SBATCH --time=02:00:00                     # Max runtime (hh:mm:ss)
+#SBATCH --mem=16G                           # CPU-side memory
+#SBATCH --cpus-per-task=4                   # CPU cores
+#SBATCH --time=01:00:00                     # Max runtime (hh:mm:ss)
 #SBATCH --output=logs/rl_%j.out             # STDOUT (%j = job ID)
 #SBATCH --error=logs/rl_%j.err              # STDERR
 
@@ -18,9 +18,15 @@ echo "===================================="
 #------------------------------
 # 1) Load required modules
 #------------------------------
-module load python/3.13.2
-module load cuda/12.0
-module load cudnn/9.13.1.26
+module purge
+module load python/3.13.2   # or whatever python module you used to build .venv
+
+# NOTE:
+# We are NOT loading cuda/cudnn modules here, because
+# your PyTorch wheel in .venv should already include CUDA.
+# If later you discover you need a system CUDA module, run
+#   module spider cuda
+# on the login node to see the correct name/version.
 
 #------------------------------
 # 2) Enter submission directory
@@ -34,6 +40,7 @@ echo "Working directory: $(pwd)"
 source .venv/bin/activate
 
 echo "Python version: $(python --version)"
+python -c "import torch; print('Torch version:', torch.__version__); print('CUDA available:', torch.cuda.is_available())"
 echo "CUDA visible devices: $CUDA_VISIBLE_DEVICES"
 echo "--------------------------------------"
 
