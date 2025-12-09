@@ -1,0 +1,109 @@
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+
+class ActorNet(nn.Module):
+    def __init__(self, state_dim: int, n_actions: int):
+        super().__init__()
+        self.model = nn.Sequential(
+            nn.Linear(state_dim, 256),
+            nn.Tanh(),
+            nn.Linear(256, 256),
+            nn.Tanh(),
+            nn.Linear(256, n_actions),
+            nn.Softmax(dim=-1),
+        )
+
+    def forward(self, x):
+        return self.model(x)
+
+
+class CriticNet(nn.Module):
+    def __init__(self, state_dim: int):
+        super().__init__()
+        self.model = nn.Sequential(
+            nn.Linear(state_dim, 256),
+            nn.Tanh(),
+            nn.Linear(256, 256),
+            nn.Tanh(),
+            nn.Linear(256, 1),
+        )
+
+    def forward(self, x):
+        # return shape (batch,) for convenience
+        return self.model(x).squeeze(-1)
+
+
+class ActorCriticAgent:
+    """
+    Simple on-policy Actor–Critic agent with one-step TD target.
+
+    - select_action(state) → int
+    - update(state, action, reward, next_state, done)
+    """
+
+    def __init__(
+        self,
+        state_dim: int,
+        n_actions: int = 3,
+        gamma: float = 0.99,
+        lr_actor: float = 1e-5,
+        lr_critic: float = 1e-4,
+        device: str = "cpu",
+    ):
+        self.device = torch.device(device)
+        self.actor = ActorNet(state_dim, n_actions).to(self.device)
+        self.critic = CriticNet(state_dim).to(self.device)
+        self.optim_actor = optim.Adam(self.actor.parameters(), lr=lr_actor)
+        self.optim_critic = optim.Adam(self.critic.parameters(), lr=lr_critic)
+        self.gamma = gamma
+        self.n_actions = n_actions
+
+    @torch.no_grad()
+    def select_action(self, state: np.ndarray) -> int:
+        """Samples an action from π(·|state)."""
+        s = torch.tensor(state, dtype=torch.float32, device=self.device)
+        probs = self.actor(s)
+        dist = torch.distributions.Categorical(probs=probs)
+        a = dist.sample()
+        return int(a.item())
+
+    def update(self, state, action, reward, next_state, done):
+        """
+        Performs a single gradient update step using one-step TD target.
+
+        Args:
+            state, next_state: np.ndarray
+            action: int
+            reward: float
+            done: bool
+        """
+        s = torch.tensor(state, dtype=torch.float32, device=self.device)
+        ns = torch.tensor(next_state, dtype=torch.float32, device=self.device)
+        r = torch.tensor(reward, dtype=torch.float32, device=self.device)
+        d = torch.tensor(done, dtype=torch.float32, device=self.device)
+
+        # Critic: V(s), V(s')
+        v_s = self.critic(s)
+        with torch.no_grad():
+            v_ns = self.critic(ns) * (1.0 - d)
+
+        td_target = r + self.gamma * v_ns
+        td_error = td_target - v_s
+
+        # ---- Critic loss ----
+        critic_loss = td_error.pow(2).mean()
+        self.optim_critic.zero_grad()
+        critic_loss.backward()
+        self.optim_critic.step()
+
+        # ---- Actor loss ----
+        probs = self.actor(s)
+        dist = torch.distributions.Categorical(probs=probs)
+        logp = dist.log_prob(torch.tensor(action, device=self.device))
+        actor_loss = -(logp * td_error.detach())
+        self.optim_actor.zero_grad()
+        actor_loss.backward()
+        self.optim_actor.step()
