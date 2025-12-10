@@ -13,9 +13,9 @@ class OffloadEnv:
     One task arrives per step; agent chooses an action:
         0 = local, 1 = MEC, 2 = Cloud.
 
-    Reward follows the QoE definition used in Simulator.step_once:
-    successful tasks get a value in [FAIL_PENALTY, 0],
-    failures get FAIL_PENALTY.
+    Reward follows the QoE definition from paper Equation 18:
+    - Successful tasks: QoE = -E_consumed / B_n (current battery)
+    - Failed tasks: QoE = η (FAIL_PENALTY = -0.1)
     """
 
     def __init__(
@@ -118,14 +118,22 @@ class OffloadEnv:
                 task, self.bs, self.cloud, n_ues=EnvConfig.NUM_UES
             )
 
-        # QoE-style reward (paper: r = -E/B_n for successful tasks)
+        # ---------------- QoE Reward (Paper Equation 18) ----------------
+        # Successful tasks: QoE = -E_consumed / B_n (current battery)
+        # Failed tasks: QoE = η (FAIL_PENALTY)
         success = latency <= task.latency_deadline
+        
         if success:
-            # in [-1, 0], more negative = more energy used
-            reward = -(energy / self.batt_max)
+            # Use CURRENT battery B_n as denominator (as per paper Eq. 18)
+            if ue.battery_j > 0:
+                reward = -(energy / ue.battery_j)
+            else:
+                # Edge case: battery is exactly 0
+                reward = EnvConfig.FAIL_PENALTY
         else:
-            # fixed failure penalty
-            reward = EnvConfig.FAIL_PENALTY  # e.g. -0.1
+            # Missed deadline → fixed penalty
+            reward = EnvConfig.FAIL_PENALTY  # η = −0.1
+        # ------------------------------------------------------------------------------
 
         # Update UE battery + idle drain
         ue.battery_j = max(ue.battery_j - energy, 0.0)
