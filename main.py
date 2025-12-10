@@ -201,10 +201,8 @@ def plot_combined_results(result_dir="results"):
     plt.suptitle("Overall Baseline Performance Comparison", fontsize=14, y=1.02)
     plt.show()
 
-# ===============================================================
-# === Main Entry Point ==========================================
-# ===============================================================
-if __name__ == "__main__":
+def run_all_baselines_and_plots():
+    """Create sim, run all baselines, then summary + combined plots."""
     # Create shared simulation environment
     sim = Simulator(n_ues=EnvConfig.NUM_UES, lam=1.0)
     print("✅ Shared simulation environment initialized.")
@@ -231,3 +229,10 @@ if __name__ == "__main__":
 
     # Produce a combined performance overlay (like in paper Fig. 8)
     plot_combined_results()
+
+# ===============================================================
+# === Main Entry Point ==========================================
+# ===============================================================
+if __name__ == "__main__":
+    run_all_baselines_and_plots()
+

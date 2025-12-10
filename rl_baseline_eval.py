@@ -139,6 +139,27 @@ def evaluate_rl_baseline(
         "| Mean Offload Ratio:", np.mean(offload_vals),
     )
 
+def run_all_with_rl(train_first: bool = False):
+    """
+    Full pipeline:
+      1) (optional) train RL actor
+      2) evaluate RL and save rl-agent_metrics.csv + RL-only plot
+      3) run all classical baselines and combined comparison plot
+    """
+    if train_first:
+        from train_rl import train
+        print("[run_all_with_rl] Training RL agent...")
+        train()  # you can pass episodes=... here if you want
+
+    print("[run_all_with_rl] Evaluating RL agent...")
+    evaluate_rl_baseline()
+
+    print("[run_all_with_rl] Running baselines and combined plots...")
+    from main import run_all_baselines_and_plots
+    run_all_baselines_and_plots()
 
 if __name__ == "__main__":
-    evaluate_rl_baseline()
+    # By default: assume you've already trained RL (train_rl.py),
+    # then run RL eval + baselines + combined comparison.
+    run_all_with_rl(train_first=False)
+
