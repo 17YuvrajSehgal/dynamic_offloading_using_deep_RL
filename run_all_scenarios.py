@@ -5,12 +5,19 @@ run_all_scenarios.py
 Master script to run all scenarios with unified parameters.
 Automatically trains/evaluates all scenario variants, runs baselines, and generates plots.
 
+Supports:
+- Scenario 1: MEC unavailability
+- Scenario 2: Communication failure
+
 Usage:
     # Run all Scenario 1 variants (RL + baselines + plots)
     python run_all_scenarios.py --scenario-set s1 --episodes 500 --all
     
+    # Run all Scenario 2 variants
+    python run_all_scenarios.py --scenario-set s2 --episodes 500 --all
+    
     # Run specific scenarios only
-    python run_all_scenarios.py --scenarios s1_class1_90 s1_class2_90 --episodes 300 --train
+    python run_all_scenarios.py --scenarios s1_class1_90 s2_class1_90 --episodes 300 --train
     
     # Evaluate existing models and plot
     python run_all_scenarios.py --scenario-set s1 --eval --plot
@@ -32,8 +39,12 @@ from run_baselines_scenario import run_all_baselines
 SCENARIO_SETS = {
     's1': ['s1_class1_90', 's1_class2_90', 's1_class3_90', 's1_random'],
     's1_base': ['s1_base'],
-    's2': ['s2_base'],
-    'all': ['s1_class1_90', 's1_class2_90', 's1_class3_90', 's1_random', 's2_base'],
+    's2': ['s2_class1_90', 's2_class2_90', 's2_class3_90', 's2_random'],
+    's2_base': ['s2_base'],
+    'all': [
+        's1_class1_90', 's1_class2_90', 's1_class3_90', 's1_random',
+        's2_class1_90', 's2_class2_90', 's2_class3_90', 's2_random',
+    ],
 }
 
 
@@ -180,6 +191,10 @@ def run_all_scenarios(
                 print("Generating Scenario 1 complete figure...")
                 create_scenario_1_figure(results_dir)
                 print("✓ Scenario 1 plots generated\n")
+            elif all(s.startswith('s2_') or s == 's2_base' for s in scenarios):
+                print("\nScenario 2 plotting: Creating individual plots per distribution...")
+                print("(Full Scenario 2 multi-panel figure coming soon)")
+                print("Use plot_scenario_results.py manually for custom plots\n")
             else:
                 print("Plotting for mixed scenarios not yet implemented")
                 print("Run plot_scenario_results.py manually for custom plots\n")
@@ -227,17 +242,20 @@ Examples:
   # Run all Scenario 1 variants (train + baselines + eval + plot)
   python run_all_scenarios.py --scenario-set s1 --episodes 500 --all
   
-  # Run only Class 1 and Class 2 (train only)
-  python run_all_scenarios.py --scenarios s1_class1_90 s1_class2_90 --episodes 300 --train
+  # Run all Scenario 2 variants (communication failure)
+  python run_all_scenarios.py --scenario-set s2 --episodes 500 --all
+  
+  # Run only Class 1 from both scenarios
+  python run_all_scenarios.py --scenarios s1_class1_90 s2_class1_90 --episodes 300 --train
   
   # Evaluate existing models and generate plots
   python run_all_scenarios.py --scenario-set s1 --eval --plot
   
   # Quick test with fewer episodes
-  python run_all_scenarios.py --scenario-set s1 --episodes 50 --train --eval
+  python run_all_scenarios.py --scenario-set s2 --episodes 50 --train --eval
   
   # Run baselines only (no RL training)
-  python run_all_scenarios.py --scenario-set s1 --baselines --plot
+  python run_all_scenarios.py --scenario-set s2 --baselines --plot
         """
     )
     
