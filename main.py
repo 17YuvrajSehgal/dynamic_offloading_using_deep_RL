@@ -52,7 +52,12 @@ def run_baseline(name, sim, policy, T=1000, save_csv=True):
 
     fig.suptitle(f"Baseline: {name}", fontsize=12)
     plt.tight_layout()
-    plt.show()
+    #plt.show()
+
+    plot_path = os.path.join("results", "1.png")
+    plt.savefig(plot_path, dpi=300, bbox_inches='tight')
+    plt.close(fig)  # Close the figure to free memory
+    print(f"[rl_baseline_eval] Saved plot to {plot_path}")
 
     # Save CSV
     if save_csv:
@@ -113,7 +118,12 @@ def summarize_results(result_dir="results"):
 
     plt.suptitle("Baseline Strategy Comparison", fontsize=13)
     plt.tight_layout()
-    plt.show()
+    #plt.show()
+
+    plot_path = os.path.join("results", "2.png")
+    plt.savefig(plot_path, dpi=300, bbox_inches='tight')
+    plt.close(fig)  # Close the figure to free memory
+    print(f"[rl_baseline_eval] Saved plot to {plot_path}")
 
 # ===============================================================
 # === Visualization: Network Layouts =============================
@@ -133,7 +143,11 @@ def plot_local_layout(sim):
     plt.legend()
     plt.grid(alpha=0.3)
     plt.tight_layout()
-    plt.show()
+    #plt.show()
+    plot_path = os.path.join("results", "3.png")
+    plt.savefig(plot_path, dpi=300, bbox_inches='tight')
+    plt.close()  # Close the figure to free memory
+    print(f"[rl_baseline_eval] Saved plot to {plot_path}")
 
 
 def plot_global_layout(sim):
@@ -150,7 +164,11 @@ def plot_global_layout(sim):
     plt.legend()
     plt.grid(alpha=0.3)
     plt.tight_layout()
-    plt.show()
+    #plt.show()
+    plot_path = os.path.join("results", "4.png")
+    plt.savefig(plot_path, dpi=300, bbox_inches='tight')
+    plt.close()  # Close the figure to free memory
+    print(f"[rl_baseline_eval] Saved plot to {plot_path}")
 
 def plot_combined_results(result_dir="results"):
     """
@@ -199,7 +217,12 @@ def plot_combined_results(result_dir="results"):
 
     plt.tight_layout()
     plt.suptitle("Overall Baseline Performance Comparison", fontsize=14, y=1.02)
-    plt.show()
+    #plt.show()
+
+    plot_path = os.path.join("results", "rl_agent_performance.png")
+    plt.savefig(plot_path, dpi=300, bbox_inches='tight')
+    plt.close()  # Close the figure to free memory
+    print(f"[rl_baseline_eval] Saved plot to {plot_path}")
 
 def run_all_baselines_and_plots():
     """Create sim, run all baselines, then summary + combined plots."""
