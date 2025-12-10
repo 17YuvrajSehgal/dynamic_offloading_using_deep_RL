@@ -1,39 +1,40 @@
 #!/bin/bash
-#SBATCH --job-name=rl_offload_s1           # Job name (changed to indicate scenario)
-#SBATCH --account=def-naser2                # Your PI account
-#SBATCH --gres=gpu:1                        # 1 GPU
-#SBATCH --mem=32G                           # CPU-side memory
-#SBATCH --cpus-per-task=4                   # CPU cores
-#SBATCH --time=04:00:00                     # Max runtime (increased to 4 hours for scenarios)
-#SBATCH --output=logs/rl_%j.out             # STDOUT (%j = job ID)
-#SBATCH --error=logs/rl_%j.err              # STDERR
+#SBATCH --job-name=rl_all_s1              # Job name
+#SBATCH --account=def-naser2              # Your PI account
+#SBATCH --gres=gpu:1                      # 1 GPU
+#SBATCH --mem=32G                         # Increased memory for running all scenarios
+#SBATCH --cpus-per-task=4                 # CPU cores
+#SBATCH --time=12:00:00                   # 12 hours for all 4 scenarios
+#SBATCH --output=logs/rl_all_%j.out       # STDOUT (%j = job ID)
+#SBATCH --error=logs/rl_all_%j.err        # STDERR
 
 echo "===================================="
-echo " RL Scenario Simulation Started"
+echo " RL All Scenarios Job Started"
 echo " Job ID: $SLURM_JOB_ID"
 echo " Node: $SLURM_NODELIST"
 echo " Time: $(date)"
 echo "===================================="
+echo ""
 
 #------------------------------
-# Configuration - EDIT THESE
+# CONFIGURATION - EDIT THESE
 #------------------------------
-# Scenario to run (options: s1_base, s1_class1_90, s1_class2_90, s1_class3_90, s1_random, s2_base)
-SCENARIO="s1_class1_90"
+# Scenario set to run (options: s1, s2, s1_base, all)
+SCENARIO_SET="s1"
 
-# Number of training episodes
-EPISODES=20
+# Number of training episodes per scenario
+EPISODES=500
 
-# Whether to train (true) or just evaluate existing model (false)
-DO_TRAIN=true
+# What to do
+DO_TRAIN=true      # Train agents
+DO_EVAL=true       # Evaluate agents  
+DO_PLOT=true       # Generate plots
 
-# Whether to evaluate after training
-DO_EVAL=true
-
-echo "[CONFIG] Scenario: $SCENARIO"
-echo "[CONFIG] Training episodes: $EPISODES"
+echo "[CONFIG] Scenario Set: $SCENARIO_SET"
+echo "[CONFIG] Episodes per scenario: $EPISODES"
 echo "[CONFIG] Train: $DO_TRAIN"
 echo "[CONFIG] Evaluate: $DO_EVAL"
+echo "[CONFIG] Plot: $DO_PLOT"
 echo ""
 
 #------------------------------
@@ -44,7 +45,7 @@ mkdir -p results
 mkdir -p results/scenarios
 
 #------------------------------
-# 1) Load required modules
+# 1) Load modules
 #------------------------------
 echo "[SETUP] Loading modules..."
 module purge
@@ -87,12 +88,20 @@ echo "Pip version: $(pip --version)"
 echo ""
 
 echo "[PYTORCH] Testing PyTorch installation..."
-python -c "import torch; print('PyTorch version:', torch.__version__); print('CUDA available:', torch.cuda.is_available()); print('CUDA version:', torch.version.cuda if torch.cuda.is_available() else 'N/A'); print('cuDNN version:', torch.backends.cudnn.version() if torch.cuda.is_available() else 'N/A')"
+python << 'PYEOF'
+import torch
+print(f"PyTorch version: {torch.__version__}")
+print(f"CUDA available: {torch.cuda.is_available()}")
+if torch.cuda.is_available():
+    print(f"CUDA version: {torch.version.cuda}")
+    print(f"cuDNN version: {torch.backends.cudnn.version()}")
+    print(f"GPU count: {torch.cuda.device_count()}")
+    print(f"GPU name: {torch.cuda.get_device_name(0)}")
+PYEOF
 
 if [ $? -ne 0 ]; then
     echo "[ERROR] PyTorch import failed!"
-    echo "[ERROR] Installing/upgrading PyTorch..."
-    pip install --upgrade torch torchvision torchaudio
+    exit 1
 fi
 echo ""
 
@@ -107,10 +116,7 @@ echo "SLURM_JOB_NAME: $SLURM_JOB_NAME"
 echo "SLURM_NODELIST: $SLURM_NODELIST"
 echo "SLURM_CPUS_PER_TASK: $SLURM_CPUS_PER_TASK"
 echo "SLURM_MEM_PER_NODE: $SLURM_MEM_PER_NODE"
-echo "SLURM_GPUS: $SLURM_GPUS"
 echo "CUDA_VISIBLE_DEVICES: ${CUDA_VISIBLE_DEVICES:-Not set}"
-echo "OMP_NUM_THREADS: ${OMP_NUM_THREADS:-Not set}"
-echo "MKL_NUM_THREADS: ${MKL_NUM_THREADS:-Not set}"
 echo ""
 
 #------------------------------
@@ -119,12 +125,13 @@ echo ""
 echo "[SETUP] Setting CPU threading limits..."
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 export MKL_NUM_THREADS=$SLURM_CPUS_PER_TASK
+export PYTHONUNBUFFERED=1
 echo "[SETUP] OMP_NUM_THREADS=$OMP_NUM_THREADS"
 echo "[SETUP] MKL_NUM_THREADS=$MKL_NUM_THREADS"
 echo ""
 
 #------------------------------
-# 7) Check GPU availability
+# 7) Check GPU with nvidia-smi
 #------------------------------
 echo "====================================="
 echo "GPU DIAGNOSTICS (nvidia-smi)"
@@ -132,9 +139,9 @@ echo "====================================="
 if command -v nvidia-smi &> /dev/null; then
     nvidia-smi
     echo ""
-    echo "[GPU] ✓ GPU detected by nvidia-smi"
+    echo "[GPU] ✓ GPU detected"
 else
-    echo "[WARNING] nvidia-smi not found - GPU may not be available"
+    echo "[WARNING] nvidia-smi not found"
 fi
 echo ""
 
@@ -145,12 +152,27 @@ echo "====================================="
 echo "PYTHON PACKAGE VERIFICATION"
 echo "====================================="
 echo "[PACKAGES] Checking required packages..."
-python -c "import numpy; print('NumPy:', numpy.__version__)" || pip install numpy
-python -c "import pandas; print('Pandas:', pandas.__version__)" || pip install pandas
-python -c "import matplotlib; print('Matplotlib:', matplotlib.__version__)" || pip install matplotlib
-python -c "import scipy; print('SciPy:', scipy.__version__)" || pip install scipy
-python -c "import torch; print('PyTorch:', torch.__version__)" || pip install torch
-echo "[PACKAGES] ✓ All packages verified"
+python << 'PYEOF'
+import sys
+try:
+    import numpy
+    print(f"NumPy: {numpy.__version__}")
+    import pandas
+    print(f"Pandas: {pandas.__version__}")
+    import matplotlib
+    print(f"Matplotlib: {matplotlib.__version__}")
+    import torch
+    print(f"PyTorch: {torch.__version__}")
+    print("All packages verified")
+except ImportError as e:
+    print(f"ERROR: Missing package - {e}")
+    sys.exit(1)
+PYEOF
+
+if [ $? -ne 0 ]; then
+    echo "[ERROR] Package verification failed"
+    exit 1
+fi
 echo ""
 
 #------------------------------
@@ -159,49 +181,38 @@ echo ""
 echo "====================================="
 echo "AVAILABLE SCENARIOS"
 echo "====================================="
-python run_scenario.py --list
+python run_all_scenarios.py --list
 echo ""
 
 #------------------------------
-# 10) Run scenario simulation
+# 10) Run all scenarios
 #------------------------------
 echo "====================================="
-echo "RUNNING SCENARIO: $SCENARIO"
+echo "RUNNING ALL SCENARIOS: $SCENARIO_SET"
 echo "====================================="
 echo "Start time: $(date)"
 echo ""
 
-# Set Python to unbuffered mode for real-time logging
-export PYTHONUNBUFFERED=1
+# Build command
+CMD="python -u run_all_scenarios.py --scenario-set $SCENARIO_SET --episodes $EPISODES"
 
-# Build command based on configuration
-if [ "$DO_TRAIN" = true ] && [ "$DO_EVAL" = true ]; then
-    # Full pipeline: train + evaluate
-    echo "[MODE] Full pipeline: Training + Evaluation"
-    python -u run_scenario.py \
-        --scenario "$SCENARIO" \
-        --full-pipeline \
-        --episodes "$EPISODES"
-    
-elif [ "$DO_TRAIN" = true ]; then
-    # Training only
-    echo "[MODE] Training only"
-    python -u run_scenario.py \
-        --scenario "$SCENARIO" \
-        --train \
-        --episodes "$EPISODES"
-    
-elif [ "$DO_EVAL" = true ]; then
-    # Evaluation only
-    echo "[MODE] Evaluation only (using existing trained model)"
-    python -u run_scenario.py \
-        --scenario "$SCENARIO" \
-        --eval
-    
-else
-    echo "[ERROR] At least one of DO_TRAIN or DO_EVAL must be true"
-    exit 1
+if [ "$DO_TRAIN" = true ]; then
+    CMD="$CMD --train"
 fi
+
+if [ "$DO_EVAL" = true ]; then
+    CMD="$CMD --eval"
+fi
+
+if [ "$DO_PLOT" = true ]; then
+    CMD="$CMD --plot"
+fi
+
+echo "[CMD] $CMD"
+echo ""
+
+# Execute
+$CMD
 
 EXIT_CODE=$?
 
@@ -214,7 +225,7 @@ echo ""
 #------------------------------
 if [ $EXIT_CODE -eq 0 ]; then
     echo "====================================="
-    echo "✓ JOB COMPLETED SUCCESSFULLY"
+    echo "✓ ALL SCENARIOS COMPLETED SUCCESSFULLY"
     echo "====================================="
 else
     echo "====================================="
@@ -223,7 +234,7 @@ else
 fi
 
 echo ""
-echo "Results location: $(pwd)/results/scenarios/$SCENARIO/"
+echo "Results location: $(pwd)/results/scenarios/"
 echo "Logs location: $(pwd)/logs/"
 echo ""
 
@@ -234,15 +245,21 @@ echo "====================================="
 echo "OUTPUT FILES"
 echo "====================================="
 
-if [ -d "results/scenarios/$SCENARIO" ]; then
-    echo "Scenario results:"
-    ls -lh "results/scenarios/$SCENARIO/"
+if [ -d "results/scenarios" ]; then
+    echo "Scenario directories:"
+    ls -d results/scenarios/*/ 2>/dev/null | head -10
     echo ""
-fi
-
-if [ -d "results" ]; then
-    echo "All results:"
-    find results -name "*.csv" -o -name "*.pt" -o -name "*.png" | head -20
+    
+    echo "CSV files:"
+    find results/scenarios -name "*.csv" -type f | head -10
+    echo ""
+    
+    echo "Model files:"
+    find results/scenarios -name "*.pt" -type f | head -10
+    echo ""
+    
+    echo "Plot files:"
+    find results/scenarios -name "*.png" -type f | head -10
     echo ""
 else
     echo "[WARNING] Results directory not found"
