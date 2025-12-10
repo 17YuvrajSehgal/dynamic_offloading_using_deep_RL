@@ -33,6 +33,7 @@ COLORS = {
 }
 
 DECISION_COLORS = {
+    'Join-Networks AC': '#1f77b4', #Brown
     'local': '#1f77b4',   # Blue
     'MEC': '#ff7f0e',     # Orange
     'cloud': '#2ca02c',   # Green
