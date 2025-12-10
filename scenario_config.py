@@ -3,11 +3,11 @@ scenario_config.py
 
 Defines the scenarios from the paper:
 - Scenario 1: MEC unavailable for certain time periods
-- Scenario 2: Channel quality degradation
+- Scenario 2: Communication failure (wireless link disappears)
 
 Each scenario specifies:
 - MEC availability schedule
-- Channel quality modifiers
+- Channel quality modifiers (communication failure)
 - Task distribution (% of each class)
 """
 
@@ -27,7 +27,7 @@ class ScenarioConfig:
     mec_availability_schedule: List[Tuple[int, int, float]]
     
     # Channel quality modifier: list of (start_timestep, end_timestep, multiplier)
-    # multiplier: 1.0 = normal, < 1.0 = degraded, > 1.0 = enhanced
+    # multiplier: 1.0 = normal, 0.0 = complete failure, < 1.0 = degraded
     channel_quality_schedule: List[Tuple[int, int, float]]
     
     # Task class distribution: [prob_class1, prob_class2, prob_class3]
@@ -65,6 +65,13 @@ class ScenarioConfig:
                 return multiplier
         # Default: normal quality
         return 1.0
+    
+    def has_communication(self, timestep: int) -> bool:
+        """
+        Check if there is ANY communication capability at given timestep.
+        Returns False only when channel_quality_multiplier is exactly 0.0.
+        """
+        return self.get_channel_quality_multiplier(timestep) > 0.0
     
     def sample_task_class(self) -> int:
         """Sample a task class (1, 2, or 3) according to distribution."""
@@ -139,31 +146,69 @@ SCENARIO_1_RANDOM = ScenarioConfig(
 
 
 # ============================================================================
-# SCENARIO 2: Channel Quality Degradation
+# SCENARIO 2: Communication Failure
 # ============================================================================
-# From paper: "In this scenario, the MEC server is always available... 
-# the wireless channel is unstable during a certain period of time"
-# (Details would come from paper's description of Scenario 2)
+# From paper: "This scenario is characterized by a stable MEC server 
+# availability, which has always between 80% and 100% of its computational 
+# resources available. However, the wireless communication link disappears 
+# between tasks 500 and 1000, making it impossible for the UEs to reach both 
+# the MEC server and the cloud server, which are only reachable through the BS 
+# with which there is connectivity."
 
 SCENARIO_2_BASE = ScenarioConfig(
     name="Scenario 2 - Base",
-    description="MEC always available, channel degradation at certain periods",
+    description="MEC stable, communication failure 500-1000",
     mec_availability_schedule=[
-        (0, 2000, 100.0),  # Always available
+        (0, 2000, 100.0),  # MEC always available (80-100% resources)
     ],
     channel_quality_schedule=[
-        # Placeholder: adjust based on paper's Figure 8
-        (0, 500, 1.0),        # Normal: 0-500
-        (500, 750, 0.3),      # DEGRADED: 500-750 (30% of normal)
-        (750, 1250, 1.0),     # Normal: 750-1250
-        (1250, 1500, 0.3),    # DEGRADED: 1250-1500
-        (1500, 2000, 1.0),    # Normal: 1500-2000
+        (0, 500, 1.0),        # Normal communication: 0-500
+        (500, 1000, 0.0),     # COMPLETE FAILURE: 500-1000 (no connectivity!)
+        (1000, 2000, 1.0),    # Normal communication: 1000-2000
     ],
-    task_distribution=[0.33, 0.34, 0.33],
+    task_distribution=[0.33, 0.34, 0.33],  # Equal distribution
     total_timesteps=2000,
 )
 
-# Add more Scenario 2 variants as needed (90% Class 1, 90% Class 2, etc.)
+# Scenario 2 - Distribution A: 90% Class 1 (delay-sensitive)
+SCENARIO_2_CLASS1_90 = ScenarioConfig(
+    name="Scenario 2 - 90% Class 1",
+    description="Communication failure 500-1000; 90% delay-sensitive tasks",
+    mec_availability_schedule=SCENARIO_2_BASE.mec_availability_schedule,
+    channel_quality_schedule=SCENARIO_2_BASE.channel_quality_schedule,
+    task_distribution=[0.90, 0.05, 0.05],
+    total_timesteps=2000,
+)
+
+# Scenario 2 - Distribution B: 90% Class 2 (energy-sensitive)
+SCENARIO_2_CLASS2_90 = ScenarioConfig(
+    name="Scenario 2 - 90% Class 2",
+    description="Communication failure 500-1000; 90% energy-sensitive tasks",
+    mec_availability_schedule=SCENARIO_2_BASE.mec_availability_schedule,
+    channel_quality_schedule=SCENARIO_2_BASE.channel_quality_schedule,
+    task_distribution=[0.05, 0.90, 0.05],
+    total_timesteps=2000,
+)
+
+# Scenario 2 - Distribution C: 90% Class 3 (insensitive)
+SCENARIO_2_CLASS3_90 = ScenarioConfig(
+    name="Scenario 2 - 90% Class 3",
+    description="Communication failure 500-1000; 90% insensitive tasks",
+    mec_availability_schedule=SCENARIO_2_BASE.mec_availability_schedule,
+    channel_quality_schedule=SCENARIO_2_BASE.channel_quality_schedule,
+    task_distribution=[0.05, 0.05, 0.90],
+    total_timesteps=2000,
+)
+
+# Scenario 2 - Distribution D: Random/Equal distribution
+SCENARIO_2_RANDOM = ScenarioConfig(
+    name="Scenario 2 - Random Distribution",
+    description="Communication failure 500-1000; equal task distribution",
+    mec_availability_schedule=SCENARIO_2_BASE.mec_availability_schedule,
+    channel_quality_schedule=SCENARIO_2_BASE.channel_quality_schedule,
+    task_distribution=[0.33, 0.34, 0.33],
+    total_timesteps=2000,
+)
 
 
 # ============================================================================
@@ -171,15 +216,19 @@ SCENARIO_2_BASE = ScenarioConfig(
 # ============================================================================
 
 ALL_SCENARIOS = {
-    # Scenario 1 variants
+    # Scenario 1 variants (MEC unavailability)
     "s1_base": SCENARIO_1_BASE,
     "s1_class1_90": SCENARIO_1_CLASS1_90,
     "s1_class2_90": SCENARIO_1_CLASS2_90,
     "s1_class3_90": SCENARIO_1_CLASS3_90,
     "s1_random": SCENARIO_1_RANDOM,
     
-    # Scenario 2 variants
+    # Scenario 2 variants (communication failure)
     "s2_base": SCENARIO_2_BASE,
+    "s2_class1_90": SCENARIO_2_CLASS1_90,
+    "s2_class2_90": SCENARIO_2_CLASS2_90,
+    "s2_class3_90": SCENARIO_2_CLASS3_90,
+    "s2_random": SCENARIO_2_RANDOM,
 }
 
 
@@ -197,13 +246,28 @@ def list_scenarios() -> None:
     """Print all available scenarios."""
     print("\nAvailable Scenarios:")
     print("=" * 80)
-    for key, config in ALL_SCENARIOS.items():
+    
+    print("\n** SCENARIO 1: MEC Unavailability **")
+    for key in ["s1_base", "s1_class1_90", "s1_class2_90", "s1_class3_90", "s1_random"]:
+        config = ALL_SCENARIOS[key]
         print(f"\n[{key}]")
         print(f"  Name: {config.name}")
         print(f"  Description: {config.description}")
         print(f"  Task Distribution: Class1={config.task_distribution[0]:.0%}, "
               f"Class2={config.task_distribution[1]:.0%}, "
               f"Class3={config.task_distribution[2]:.0%}")
+    
+    print("\n" + "-" * 80)
+    print("\n** SCENARIO 2: Communication Failure **")
+    for key in ["s2_base", "s2_class1_90", "s2_class2_90", "s2_class3_90", "s2_random"]:
+        config = ALL_SCENARIOS[key]
+        print(f"\n[{key}]")
+        print(f"  Name: {config.name}")
+        print(f"  Description: {config.description}")
+        print(f"  Task Distribution: Class1={config.task_distribution[0]:.0%}, "
+              f"Class2={config.task_distribution[1]:.0%}, "
+              f"Class3={config.task_distribution[2]:.0%}")
+    
     print("\n" + "=" * 80)
 
 
@@ -222,8 +286,15 @@ if __name__ == "__main__":
         is_avail = s1.is_mec_available(t)
         print(f"  t={t:4d}: MEC availability = {avail:5.1f}%, available = {is_avail}")
     
-    # Sample some task classes
-    print("\n  Sampling 20 task classes:")
-    samples = [s1.sample_task_class() for _ in range(20)]
-    print(f"  {samples}")
-    print(f"  Class 1: {samples.count(1)}/20, Class 2: {samples.count(2)}/20, Class 3: {samples.count(3)}/20")
+    # Test Scenario 2
+    print("\n\nTesting Scenario 2 - Class 1 90%:")
+    s2 = get_scenario("s2_class1_90")
+    
+    # Check communication at key timesteps
+    test_timesteps = [0, 250, 500, 750, 1000, 1250, 1500, 1750]
+    for t in test_timesteps:
+        has_comm = s2.has_communication(t)
+        ch_quality = s2.get_channel_quality_multiplier(t)
+        mec_avail = s2.is_mec_available(t)
+        print(f"  t={t:4d}: Communication = {has_comm}, "
+              f"Channel quality = {ch_quality:.2f}, MEC available = {mec_avail}")
