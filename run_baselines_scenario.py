@@ -5,12 +5,14 @@ run_baselines_scenario.py
 Run baseline policies (local, MEC, cloud, random) on specific scenarios
 for comparison with RL agents. Matches the paper's evaluation methodology.
 
+Supports both Scenario 1 (MEC unavailability) and Scenario 2 (communication failure).
+
 Usage:
     # Run all baselines on a scenario
     python run_baselines_scenario.py --scenario s1_class1_90 --all
     
     # Run specific baseline
-    python run_baselines_scenario.py --scenario s1_class1_90 --policy mec
+    python run_baselines_scenario.py --scenario s2_class1_90 --policy mec
     
     # Run with custom timesteps
     python run_baselines_scenario.py --scenario s1_class1_90 --policy local --timesteps 2000
@@ -32,7 +34,8 @@ from models import UE, BaseStation, MECServer, CloudServer, TaskFactory
 
 class BaselineSimulator:
     """
-    Simulates baseline policies on scenarios.
+    Simulates baseline policies on scenarios with MEC unavailability
+    and communication failure support.
     """
     
     def __init__(self, scenario_key: str):
@@ -60,23 +63,15 @@ class BaselineSimulator:
     
     def is_mec_available(self, timestep: int) -> bool:
         """Check if MEC is available at given timestep."""
-        if not hasattr(self.scenario, 'mec_availability_schedule'):
-            return True
-        
-        for start, end, available in self.scenario.mec_availability_schedule:
-            if start <= timestep < end:
-                return available
-        return True
+        return self.scenario.is_mec_available(timestep)
+    
+    def has_communication(self, timestep: int) -> bool:
+        """Check if communication is available at given timestep."""
+        return self.scenario.has_communication(timestep)
     
     def get_channel_quality(self, timestep: int) -> float:
         """Get channel quality multiplier at given timestep."""
-        if not hasattr(self.scenario, 'channel_quality_schedule'):
-            return 1.0
-        
-        for start, end, quality in self.scenario.channel_quality_schedule:
-            if start <= timestep < end:
-                return quality
-        return 1.0
+        return self.scenario.get_channel_quality_multiplier(timestep)
     
     def run_policy(
         self,
@@ -140,8 +135,10 @@ class BaselineSimulator:
             # Store battery before execution
             battery_before = self.ue.battery_j
             
-            # Get channel quality
+            # Get channel quality and communication status
             channel_quality = self.get_channel_quality(t)
+            has_communication = self.has_communication(t)
+            mec_available = self.is_mec_available(t)
             
             # Decide action based on policy
             if policy == "random":
@@ -156,29 +153,41 @@ class BaselineSimulator:
                 raise ValueError(f"Unknown policy: {policy}")
             
             # Execute action
-            if action == 0:  # Local
+            if action == 0:  # Local - always works
                 latency = self.ue.local_latency(task.cpu_cycles)
                 energy = self.ue.local_energy(task.cpu_cycles)
                 
             elif action == 1:  # MEC
-                mec_available = self.is_mec_available(t)
-                if mec_available:
+                # Check if offloading is possible
+                if not has_communication:
+                    # SCENARIO 2: Communication failure → cannot reach MEC
+                    latency = task.latency_deadline * 10.0
+                    energy = 0.0
+                elif not mec_available:
+                    # SCENARIO 1: MEC unavailable
+                    latency = task.latency_deadline * 10.0
+                    energy = 0.0
+                else:
+                    # Normal MEC offloading
                     latency, energy = self.ue.offload_to_mec(
                         task, self.bs, self.mec,
                         n_ues=EnvConfig.NUM_UES,
                         channel_quality_multiplier=channel_quality,
                     )
-                else:
-                    # MEC unavailable → treat as failure
+                    
+            else:  # Cloud (action == 2)
+                # Check if offloading is possible
+                if not has_communication:
+                    # SCENARIO 2: Communication failure → cannot reach Cloud
                     latency = task.latency_deadline * 10.0
                     energy = 0.0
-                    
-            else:  # Cloud
-                latency, energy = self.ue.offload_to_cloud(
-                    task, self.bs, self.cloud,
-                    n_ues=EnvConfig.NUM_UES,
-                    channel_quality_multiplier=channel_quality,
-                )
+                else:
+                    # Normal cloud offloading
+                    latency, energy = self.ue.offload_to_cloud(
+                        task, self.bs, self.cloud,
+                        n_ues=EnvConfig.NUM_UES,
+                        channel_quality_multiplier=channel_quality,
+                    )
             
             # Update battery
             self.ue.battery_j = max(self.ue.battery_j - energy, 0.0)
@@ -319,7 +328,7 @@ def main():
     parser.add_argument(
         "--scenario",
         type=str,
-        help="Scenario key (e.g., 's1_class1_90')",
+        help="Scenario key (e.g., 's1_class1_90', 's2_class1_90')",
     )
     
     parser.add_argument(
