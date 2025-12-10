@@ -110,6 +110,7 @@ def evaluate_rl_baseline(
         }
     )
 
+    # ---- Create and save plot (no interactive display) ----
     fig, axs = plt.subplots(2, 2, figsize=(10, 7))
     axs[0, 0].plot(smooth(df["QoE"]))
     axs[0, 0].set_title("RL Agent — QoE")
@@ -129,7 +130,12 @@ def evaluate_rl_baseline(
 
     fig.suptitle("RL Agent Performance", fontsize=12)
     plt.tight_layout()
-    plt.show()
+    
+    # Save plot to file instead of showing
+    plot_path = os.path.join("results", "rl_agent_performance.png")
+    plt.savefig(plot_path, dpi=300, bbox_inches='tight')
+    plt.close(fig)  # Close the figure to free memory
+    print(f"[rl_baseline_eval] Saved plot to {plot_path}")
 
     csv_path = os.path.join("results", csv_name)
     df.to_csv(csv_path, index=False)
