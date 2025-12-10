@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List
 
 from EnvConfig import EnvConfig
 from models import UE, BaseStation, MECServer, CloudServer, TaskFactory, Task
@@ -8,9 +8,10 @@ from models import UE, BaseStation, MECServer, CloudServer, TaskFactory, Task
 
 class OffloadEnv:
     """
-    Single-UE RL environment.
+    Single-UE RL environment with Poisson task arrivals.
 
-    One task arrives per step; agent chooses an action:
+    Tasks arrive according to a Poisson process (λ = TASK_ARRIVAL_RATE).
+    Agent chooses an action for each arriving task:
         0 = local, 1 = MEC, 2 = Cloud.
 
     Reward follows the QoE definition from paper Equation 18:
@@ -26,6 +27,7 @@ class OffloadEnv:
         cloud: CloudServer,
         max_steps: int = EnvConfig.TOTAL_TIME_T,
         task_mode: str = "random",
+        task_arrival_rate: float = None,
     ):
         self.ue = ue
         self.bs = bs
@@ -34,9 +36,13 @@ class OffloadEnv:
         self.max_steps = max_steps
         self.task_factory = TaskFactory(mode=task_mode)
         self.step_count = 0
+        
+        # Use same arrival rate as baselines
+        self.lam = task_arrival_rate if task_arrival_rate is not None else EnvConfig.TASK_ARRIVAL_RATE
 
-        # Track current task
-        self.current_task: Optional[Task] = None
+        # Track current tasks for this timestep
+        self.current_tasks: List[Task] = []
+        self.task_index = 0  # Index of current task being processed
 
         # Normalization constants (rough, based on TaskFactory ranges & config)
         self.batt_max = EnvConfig.UE_MAX_BATTERY
@@ -53,12 +59,17 @@ class OffloadEnv:
     # ------------------------------------------------------------------
     def reset(self) -> np.ndarray:
         """
-        Resets UE battery and episode counters, samples the first task,
+        Resets UE battery and episode counters, samples tasks for first timestep,
         and returns the initial state.
         """
         self.ue.battery_j = EnvConfig.UE_MAX_BATTERY
         self.step_count = 0
-        self.current_task = self.task_factory.sample()
+        
+        # Sample tasks for first timestep using Poisson arrivals
+        num_arrivals = np.random.poisson(self.lam)
+        self.current_tasks = [self.task_factory.sample() for _ in range(num_arrivals)]
+        self.task_index = 0
+        
         return self._build_state()
 
     def step(self, action: int) -> Tuple[np.ndarray, float, bool, dict]:
@@ -70,40 +81,50 @@ class OffloadEnv:
         """
         assert action in (0, 1, 2), f"Invalid action {action}"
 
-        self.step_count += 1
         ue = self.ue
-        task = self.current_task
-
-        if task is None:
-            # Should not normally happen; treat as terminal
-            return self._build_state(), 0.0, True, {"note": "no_task"}
-
-        # If UE already dead, give penalty and end episode
-        if ue.battery_j <= 0:
-            # still advance step counter
+        
+        # Check if we have tasks to process in current timestep
+        if self.task_index >= len(self.current_tasks):
+            # No more tasks in this timestep, move to next timestep
             self.step_count += 1
+            
+            # Apply idle drain for this timestep
+            ue.drain_idle()
+            
+            # Check if episode is done
+            done = (ue.battery_j <= 0.0) or (self.step_count >= self.max_steps)
+            
+            if done:
+                return self._build_state(), 0.0, True, {"note": "episode_end", "battery": ue.battery_j}
+            
+            # Sample new tasks for next timestep
+            num_arrivals = np.random.poisson(self.lam)
+            self.current_tasks = [self.task_factory.sample() for _ in range(num_arrivals)]
+            self.task_index = 0
+            
+            # If no tasks arrived, return zero reward and continue
+            if len(self.current_tasks) == 0:
+                return self._build_state(), 0.0, False, {"note": "no_arrivals", "battery": ue.battery_j}
+        
+        # Get current task
+        task = self.current_tasks[self.task_index]
+        self.task_index += 1
 
+        # If UE already dead, give penalty
+        if ue.battery_j <= 0:
             reward = EnvConfig.FAIL_PENALTY
-            done = self.step_count >= self.max_steps
-
-            # Fake / default values for logging
-            latency = 0.0
-            energy = 0.0
-            deadline = 0.0
-
-            self.current_task = self.task_factory.sample()
-            next_state = self._build_state()
+            done = True
 
             info = {
-                "latency": latency,
-                "energy": energy,
+                "latency": 0.0,
+                "energy": 0.0,
                 "success": False,
                 "battery": ue.battery_j,
-                "task_class": -1,
-                "deadline": deadline,
+                "task_class": task.cls,
+                "deadline": task.latency_deadline,
                 "dead": True,
             }
-            return next_state, float(reward), bool(done), info
+            return self._build_state(), float(reward), bool(done), info
 
         # --- compute latency and energy using existing model methods ---
         if action == 0:
@@ -135,14 +156,13 @@ class OffloadEnv:
             reward = EnvConfig.FAIL_PENALTY  # η = −0.1
         # ------------------------------------------------------------------------------
 
-        # Update UE battery + idle drain
+        # Update UE battery (no idle drain here, done at timestep boundary)
         ue.battery_j = max(ue.battery_j - energy, 0.0)
-        ue.drain_idle()
 
-        done = (ue.battery_j <= 0.0) or (self.step_count >= self.max_steps)
+        # Check if done after processing this task
+        done = (ue.battery_j <= 0.0) or (self.step_count >= self.max_steps and self.task_index >= len(self.current_tasks))
 
-        # Prepare next state
-        self.current_task = self.task_factory.sample()
+        # Build next state
         next_state = self._build_state()
         info = {
             "latency": latency,
@@ -151,6 +171,9 @@ class OffloadEnv:
             "battery": ue.battery_j,
             "task_class": task.cls,
             "deadline": task.latency_deadline,
+            "timestep": self.step_count,
+            "task_index": self.task_index - 1,
+            "total_tasks_in_timestep": len(self.current_tasks),
         }
         return next_state, float(reward), bool(done), info
 
@@ -159,11 +182,28 @@ class OffloadEnv:
     # ------------------------------------------------------------------
     def _build_state(self) -> np.ndarray:
         ue = self.ue
-        task = self.current_task
-
-        # If no task or battery empty, return zeros
-        if task is None or ue.battery_j <= 0.0:
+        
+        # If battery empty, return zeros
+        if ue.battery_j <= 0.0:
             return np.zeros(10, dtype=np.float32)
+        
+        # If no more tasks in current timestep, use zeros for task features
+        if self.task_index >= len(self.current_tasks):
+            # Battery and resource states
+            b = ue.battery_j / self.batt_max
+            r_ue = ue.cpu_hz / EnvConfig.UE_MAX_COMPUTATION_RESOURCES
+            r_mec = self.mec.f_available_hz / EnvConfig.MEC_MAX_COMPUTATION_RESOURCES
+            r_cloud = self.cloud.f_available_hz / EnvConfig.CLOUD_TRANSMISSION_POWER
+            h_lin = self.bs.channel_gain_linear(ue.f_c_ghz, ue.distance_to_bs_m)
+            h_norm = np.clip(-np.log10(h_lin + 1e-12) / 10.0, 0.0, 1.0)
+            
+            # No task features
+            return np.array(
+                [b, r_ue, r_mec, r_cloud, h_norm, 0.0, 0.0, 0.0, 0.0, 0.0],
+                dtype=np.float32,
+            )
+        
+        task = self.current_tasks[self.task_index]
 
         # Battery
         b = ue.battery_j / self.batt_max
