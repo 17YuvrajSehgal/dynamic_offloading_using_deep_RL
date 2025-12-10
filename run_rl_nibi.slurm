@@ -55,7 +55,7 @@ export MKL_NUM_THREADS=$SLURM_CPUS_PER_TASK
 #------------------------------
 echo "Starting RL training..."
 export PYTHONUNBUFFERED=1
-python -u train_rl.py
+python -u rl_baseline_eval.py
 
 echo "===================================="
 echo " RL Offloading Job Finished"

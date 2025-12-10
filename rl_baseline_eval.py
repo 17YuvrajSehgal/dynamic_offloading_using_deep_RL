@@ -165,4 +165,4 @@ def run_all_with_rl(train_first: bool = False):
 if __name__ == "__main__":
     # By default: assume you've already trained RL (train_rl.py),
     # then run RL eval + baselines + combined comparison.
-    run_all_with_rl(train_first=False)
+    run_all_with_rl(train_first=True)
