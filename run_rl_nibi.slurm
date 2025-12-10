@@ -2,7 +2,7 @@
 #SBATCH --job-name=rl_offload_s1           # Job name (changed to indicate scenario)
 #SBATCH --account=def-naser2                # Your PI account
 #SBATCH --gres=gpu:1                        # 1 GPU
-#SBATCH --mem=16G                           # CPU-side memory
+#SBATCH --mem=32G                           # CPU-side memory
 #SBATCH --cpus-per-task=4                   # CPU cores
 #SBATCH --time=04:00:00                     # Max runtime (increased to 4 hours for scenarios)
 #SBATCH --output=logs/rl_%j.out             # STDOUT (%j = job ID)
@@ -22,7 +22,7 @@ echo "===================================="
 SCENARIO="s1_class1_90"
 
 # Number of training episodes
-EPISODES=500
+EPISODES=20
 
 # Whether to train (true) or just evaluate existing model (false)
 DO_TRAIN=true
