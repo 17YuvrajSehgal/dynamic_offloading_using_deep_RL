@@ -3,11 +3,11 @@
 run_all_scenarios.py
 
 Master script to run all scenarios with unified parameters.
-Automatically trains/evaluates all scenario variants and generates plots.
+Automatically trains/evaluates all scenario variants, runs baselines, and generates plots.
 
 Usage:
-    # Run all Scenario 1 variants
-    python run_all_scenarios.py --scenario-set s1 --episodes 500 --train --eval --plot
+    # Run all Scenario 1 variants (RL + baselines + plots)
+    python run_all_scenarios.py --scenario-set s1 --episodes 500 --all
     
     # Run specific scenarios only
     python run_all_scenarios.py --scenarios s1_class1_90 s1_class2_90 --episodes 300 --train
@@ -26,6 +26,7 @@ import torch
 
 from scenario_config import ALL_SCENARIOS, get_scenario, list_scenarios
 from run_scenario import train_rl_on_scenario, evaluate_rl_on_scenario
+from run_baselines_scenario import run_all_baselines
 
 
 SCENARIO_SETS = {
@@ -41,6 +42,7 @@ def run_all_scenarios(
     episodes: int = 500,
     do_train: bool = True,
     do_eval: bool = True,
+    do_baselines: bool = True,
     do_plot: bool = True,
     device: str = None,
     results_dir: str = "results/scenarios",
@@ -51,8 +53,9 @@ def run_all_scenarios(
     Args:
         scenarios: List of scenario keys to run
         episodes: Number of training episodes
-        do_train: Whether to train agents
-        do_eval: Whether to evaluate agents
+        do_train: Whether to train RL agents
+        do_eval: Whether to evaluate RL agents
+        do_baselines: Whether to run baseline comparisons
         do_plot: Whether to generate plots at the end
         device: Device to use ('cuda' or 'cpu')
         results_dir: Directory to save results
@@ -62,8 +65,9 @@ def run_all_scenarios(
     print("="*80)
     print(f"Scenarios to run: {scenarios}")
     print(f"Training episodes: {episodes}")
-    print(f"Train: {do_train}")
-    print(f"Evaluate: {do_eval}")
+    print(f"Train RL: {do_train}")
+    print(f"Evaluate RL: {do_eval}")
+    print(f"Run baselines: {do_baselines}")
     print(f"Plot: {do_plot}")
     print(f"Device: {device or 'auto'}")
     print("="*80 + "\n")
@@ -96,20 +100,38 @@ def run_all_scenarios(
         print()
         
         try:
-            # Training
+            # --- Run Baselines First ---
+            if do_baselines:
+                print(f"\n{'='*80}")
+                print(f"[{scenario_key}] Running Baseline Policies")
+                print(f"{'='*80}\n")
+                
+                run_all_baselines(
+                    scenario_key=scenario_key,
+                    output_dir=results_dir,
+                )
+                print(f"[{scenario_key}] ✓ Baselines complete\n")
+            
+            # --- RL Training ---
             if do_train:
-                print(f"[{scenario_key}] Starting training...")
+                print(f"\n{'='*80}")
+                print(f"[{scenario_key}] Training RL Agent")
+                print(f"{'='*80}\n")
+                
                 train_rl_on_scenario(
                     scenario_key=scenario_key,
                     episodes=episodes,
                     device=device,
                     save_dir=results_dir,
                 )
-                print(f"[{scenario_key}] ✓ Training complete\n")
+                print(f"[{scenario_key}] ✓ RL training complete\n")
             
-            # Evaluation
+            # --- RL Evaluation ---
             if do_eval:
-                print(f"[{scenario_key}] Starting evaluation...")
+                print(f"\n{'='*80}")
+                print(f"[{scenario_key}] Evaluating RL Agent")
+                print(f"{'='*80}\n")
+                
                 eval_df = evaluate_rl_on_scenario(
                     scenario_key=scenario_key,
                     device=device,
@@ -128,18 +150,20 @@ def run_all_scenarios(
                         'success_rate': success_rate,
                     })
                     
-                    print(f"[{scenario_key}] ✓ Evaluation complete")
+                    print(f"[{scenario_key}] ✓ RL evaluation complete")
                     print(f"  Mean QoE: {mean_qoe:.6f}")
                     print(f"  Final Battery: {final_battery:.2f} J")
                     print(f"  Success Rate: {success_rate:.1%}\n")
                 else:
-                    print(f"[{scenario_key}] ✗ Evaluation failed\n")
+                    print(f"[{scenario_key}] ✗ RL evaluation failed\n")
             
             scenario_elapsed = time.time() - scenario_start
             print(f"[{scenario_key}] Time elapsed: {scenario_elapsed/60:.1f} minutes\n")
             
         except Exception as e:
             print(f"\n[{scenario_key}] ERROR: {str(e)}")
+            import traceback
+            traceback.print_exc()
             print(f"[{scenario_key}] Skipping to next scenario...\n")
             continue
     
@@ -162,6 +186,8 @@ def run_all_scenarios(
                 
         except Exception as e:
             print(f"ERROR generating plots: {str(e)}")
+            import traceback
+            traceback.print_exc()
             print("You can generate plots manually with: python plot_scenario_results.py\n")
     
     # Print summary
@@ -173,7 +199,7 @@ def run_all_scenarios(
     print(f"Total time: {total_elapsed/60:.1f} minutes\n")
     
     if results_summary:
-        print("Results Summary:")
+        print("RL Agent Results Summary:")
         print("-" * 80)
         print(f"{'Scenario':<20} {'Mean QoE':>12} {'Final Battery':>15} {'Success Rate':>15}")
         print("-" * 80)
@@ -198,8 +224,8 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Run all Scenario 1 variants (train + eval + plot)
-  python run_all_scenarios.py --scenario-set s1 --episodes 500 --train --eval --plot
+  # Run all Scenario 1 variants (train + baselines + eval + plot)
+  python run_all_scenarios.py --scenario-set s1 --episodes 500 --all
   
   # Run only Class 1 and Class 2 (train only)
   python run_all_scenarios.py --scenarios s1_class1_90 s1_class2_90 --episodes 300 --train
@@ -209,6 +235,9 @@ Examples:
   
   # Quick test with fewer episodes
   python run_all_scenarios.py --scenario-set s1 --episodes 50 --train --eval
+  
+  # Run baselines only (no RL training)
+  python run_all_scenarios.py --scenario-set s1 --baselines --plot
         """
     )
     
@@ -241,12 +270,17 @@ Examples:
     parser.add_argument(
         '--train',
         action='store_true',
-        help='Train agents on scenarios'
+        help='Train RL agents on scenarios'
     )
     parser.add_argument(
         '--eval',
         action='store_true',
-        help='Evaluate trained agents'
+        help='Evaluate trained RL agents'
+    )
+    parser.add_argument(
+        '--baselines',
+        action='store_true',
+        help='Run baseline policies (local, MEC, cloud, random)'
     )
     parser.add_argument(
         '--plot',
@@ -256,7 +290,12 @@ Examples:
     parser.add_argument(
         '--all',
         action='store_true',
-        help='Shortcut for --train --eval --plot'
+        help='Shortcut for --train --eval --baselines --plot'
+    )
+    parser.add_argument(
+        '--no-baselines',
+        action='store_true',
+        help='Skip baseline policies (when using --all)'
     )
     
     # Device options
@@ -296,13 +335,20 @@ Examples:
         scenarios = args.scenarios
     
     # Determine what to do
-    do_train = args.train or args.all
-    do_eval = args.eval or args.all
-    do_plot = args.plot or args.all
+    if args.all:
+        do_train = True
+        do_eval = True
+        do_baselines = not args.no_baselines
+        do_plot = True
+    else:
+        do_train = args.train
+        do_eval = args.eval
+        do_baselines = args.baselines
+        do_plot = args.plot
     
     # Require at least one action
-    if not (do_train or do_eval or do_plot):
-        print("ERROR: Must specify at least one of --train, --eval, --plot, or --all")
+    if not (do_train or do_eval or do_baselines or do_plot):
+        print("ERROR: Must specify at least one of --train, --eval, --baselines, --plot, or --all")
         parser.print_help()
         sys.exit(1)
     
@@ -312,6 +358,7 @@ Examples:
         episodes=args.episodes,
         do_train=do_train,
         do_eval=do_eval,
+        do_baselines=do_baselines,
         do_plot=do_plot,
         device=args.device,
         results_dir=args.results_dir,
