@@ -81,15 +81,17 @@ class Simulator:
                 latency, energy = ue.offload_to_cloud(task, self.bs, self.cloud, self.n_ues)
                 offload_ct += 1
 
-            # ---------------- QoE Calculation (Eq. 18 with normalization & bounds) ----------------
+            # ---------------- QoE Calculation (Paper Equation 18) ----------------
+            # Successful tasks: QoE = -E_consumed / B_n (current battery)
+            # Failed tasks: QoE = η (FAIL_PENALTY)
             success = latency <= task.latency_deadline
-            B_max = EnvConfig.UE_MAX_BATTERY  # constant normalization (4000 J)
 
             if success:
-                # Normalize energy by full battery, scale to [-0.1, 0]
-                qoe_raw = - (energy / B_max) * 1000  # scale factor chosen to give visible decay
-                # Clip within [FAIL_PENALTY, 0]
-                qoe = max(EnvConfig.FAIL_PENALTY, min(0.0, qoe_raw))
+                # Use CURRENT battery B_n as denominator (as per paper Eq. 18)
+                if ue.battery_j > 0:
+                    qoe = -(energy / ue.battery_j)
+                else:
+                    qoe = EnvConfig.FAIL_PENALTY
             else:
                 # Missed deadline → fixed penalty
                 qoe = EnvConfig.FAIL_PENALTY  # η = −0.1
