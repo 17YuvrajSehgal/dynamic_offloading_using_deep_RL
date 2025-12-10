@@ -78,7 +78,11 @@ def train(
         device = "cuda" if torch.cuda.is_available() else "cpu"
     
     print(f"[train_rl] Selected device: {device}")
-    
+
+    if device == "cuda":
+        print("GPU memory allocated:", torch.cuda.memory_allocated() / 1e9, "GB")
+        print("GPU memory reserved:", torch.cuda.memory_reserved() / 1e9, "GB")
+
     # Verify device is actually available
     if device == "cuda" and not torch.cuda.is_available():
         print("ERROR: CUDA device requested but not available. Falling back to CPU.")

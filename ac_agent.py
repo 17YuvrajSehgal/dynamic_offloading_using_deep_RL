@@ -66,8 +66,8 @@ class ActorCriticAgent:
     @torch.no_grad()
     def select_action(self, state: np.ndarray) -> int:
         """Samples an action from π(·|state)."""
-        s = torch.tensor(state, dtype=torch.float32, device=self.device)
-        probs = self.actor(s)
+        state = torch.tensor(state, dtype=torch.float32, device=self.device).unsqueeze(0)
+        probs = self.actor(state)
         dist = torch.distributions.Categorical(probs=probs)
         a = dist.sample()
         return int(a.item())
@@ -82,15 +82,16 @@ class ActorCriticAgent:
             reward: float
             done: bool
         """
-        s = torch.tensor(state, dtype=torch.float32, device=self.device)
-        ns = torch.tensor(next_state, dtype=torch.float32, device=self.device)
+        state = torch.tensor(state, dtype=torch.float32, device=self.device)
+        next_state = torch.tensor(next_state, dtype=torch.float32, device=self.device)
+
         r = torch.tensor(reward, dtype=torch.float32, device=self.device)
         d = torch.tensor(done, dtype=torch.float32, device=self.device)
 
         # Critic: V(s), V(s')
-        v_s = self.critic(s)
+        v_s = self.critic(state)
         with torch.no_grad():
-            v_ns = self.critic(ns) * (1.0 - d)
+            v_ns = self.critic(next_state) * (1.0 - d)
 
         td_target = r + self.gamma * v_ns
         td_error = td_target - v_s
@@ -103,7 +104,7 @@ class ActorCriticAgent:
         self.optim_critic.step()
 
         # ---- Actor loss ----
-        probs = self.actor(s)
+        probs = self.actor(state)
         dist = torch.distributions.Categorical(probs=probs)
         logp = dist.log_prob(torch.tensor(action, device=self.device))
         entropy = dist.entropy()
