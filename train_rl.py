@@ -31,7 +31,7 @@ def make_env() -> OffloadEnv:
 
 
 def train(
-    episodes: int = 1000,
+    episodes: int = 300,
     gamma: float = 0.99,
     lr_actor: float = 1e-5,
     lr_critic: float = 1e-4,
