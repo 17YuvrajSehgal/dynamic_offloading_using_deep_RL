@@ -8,7 +8,7 @@ from models import UE, BaseStation, MECServer, CloudServer, TaskFactory, Task
 
 class OffloadEnv:
     """
-    Single-UE RL environment with Poisson task arrivals.
+    Single-UE RL environment with Poisson task arrivals and scenario support.
 
     Tasks arrive according to a Poisson process (λ = TASK_ARRIVAL_RATE).
     Agent chooses an action for each arriving task:
@@ -17,6 +17,11 @@ class OffloadEnv:
     Reward follows the QoE definition from paper Equation 18:
     - Successful tasks: QoE = -E_consumed / B_n (current battery)
     - Failed tasks: QoE = η (FAIL_PENALTY = -0.1)
+    
+    Supports scenarios with:
+    - Time-varying MEC availability
+    - Time-varying channel quality
+    - Task class distribution
     """
 
     def __init__(
@@ -28,6 +33,7 @@ class OffloadEnv:
         max_steps: int = EnvConfig.TOTAL_TIME_T,
         task_mode: str = "random",
         task_arrival_rate: float = None,
+        scenario_config=None,  # ScenarioConfig instance
     ):
         self.ue = ue
         self.bs = bs
@@ -36,6 +42,9 @@ class OffloadEnv:
         self.max_steps = max_steps
         self.task_factory = TaskFactory(mode=task_mode)
         self.step_count = 0
+        
+        # Scenario configuration
+        self.scenario_config = scenario_config
         
         # Use same arrival rate as baselines
         self.lam = task_arrival_rate if task_arrival_rate is not None else EnvConfig.TASK_ARRIVAL_RATE
@@ -67,10 +76,37 @@ class OffloadEnv:
         
         # Sample tasks for first timestep using Poisson arrivals
         num_arrivals = np.random.poisson(self.lam)
-        self.current_tasks = [self.task_factory.sample() for _ in range(num_arrivals)]
+        self.current_tasks = self._sample_tasks(num_arrivals)
         self.task_index = 0
         
         return self._build_state()
+    
+    def _sample_tasks(self, num_tasks: int) -> List[Task]:
+        """Sample tasks according to scenario configuration or default factory."""
+        if self.scenario_config is not None:
+            # Use scenario's task distribution
+            tasks = []
+            for _ in range(num_tasks):
+                task_class = self.scenario_config.sample_task_class()
+                # Create task factory for specific class
+                factory = TaskFactory(mode="fixed", fixed_class=task_class)
+                tasks.append(factory.sample())
+            return tasks
+        else:
+            # Use default task factory
+            return [self.task_factory.sample() for _ in range(num_tasks)]
+    
+    def _is_mec_available(self) -> bool:
+        """Check if MEC is available at current timestep."""
+        if self.scenario_config is None:
+            return True  # Always available if no scenario
+        return self.scenario_config.is_mec_available(self.step_count)
+    
+    def _get_channel_quality_multiplier(self) -> float:
+        """Get channel quality multiplier for current timestep."""
+        if self.scenario_config is None:
+            return 1.0  # Normal quality if no scenario
+        return self.scenario_config.get_channel_quality_multiplier(self.step_count)
 
     def step(self, action: int) -> Tuple[np.ndarray, float, bool, dict]:
         """
@@ -99,7 +135,7 @@ class OffloadEnv:
             
             # Sample new tasks for next timestep
             num_arrivals = np.random.poisson(self.lam)
-            self.current_tasks = [self.task_factory.sample() for _ in range(num_arrivals)]
+            self.current_tasks = self._sample_tasks(num_arrivals)
             self.task_index = 0
             
             # If no tasks arrived, return zero reward and continue
@@ -126,17 +162,49 @@ class OffloadEnv:
             }
             return self._build_state(), float(reward), bool(done), info
 
-        # --- compute latency and energy using existing model methods ---
+        # --- Check MEC availability (Scenario 1) ---
+        mec_available = self._is_mec_available()
+        if action == 1 and not mec_available:
+            # MEC requested but unavailable → treat as failed task
+            latency = task.latency_deadline * 10.0  # Artificially high latency
+            energy = 0.0  # No energy consumed if can't offload
+            success = False
+            reward = EnvConfig.FAIL_PENALTY
+            
+            info = {
+                "latency": latency,
+                "energy": energy,
+                "success": success,
+                "battery": ue.battery_j,
+                "task_class": task.cls,
+                "deadline": task.latency_deadline,
+                "mec_unavailable": True,
+                "timestep": self.step_count,
+                "task_index": self.task_index - 1,
+                "total_tasks_in_timestep": len(self.current_tasks),
+            }
+            
+            # Check if done
+            done = (ue.battery_j <= 0.0) or (self.step_count >= self.max_steps and self.task_index >= len(self.current_tasks))
+            return self._build_state(), float(reward), bool(done), info
+
+        # --- Compute latency and energy using existing model methods ---
         if action == 0:
             latency = ue.local_latency(task.cpu_cycles)
             energy = ue.local_energy(task.cpu_cycles)
         elif action == 1:
+            # Apply channel quality multiplier (Scenario 2)
+            channel_multiplier = self._get_channel_quality_multiplier()
             latency, energy = ue.offload_to_mec(
-                task, self.bs, self.mec, n_ues=EnvConfig.NUM_UES
+                task, self.bs, self.mec, n_ues=EnvConfig.NUM_UES,
+                channel_quality_multiplier=channel_multiplier
             )
-        else:
+        else:  # action == 2
+            # Apply channel quality multiplier (Scenario 2)
+            channel_multiplier = self._get_channel_quality_multiplier()
             latency, energy = ue.offload_to_cloud(
-                task, self.bs, self.cloud, n_ues=EnvConfig.NUM_UES
+                task, self.bs, self.cloud, n_ues=EnvConfig.NUM_UES,
+                channel_quality_multiplier=channel_multiplier
             )
 
         # ---------------- QoE Reward (Paper Equation 18) ----------------
@@ -174,6 +242,8 @@ class OffloadEnv:
             "timestep": self.step_count,
             "task_index": self.task_index - 1,
             "total_tasks_in_timestep": len(self.current_tasks),
+            "mec_available": mec_available,
+            "channel_quality": self._get_channel_quality_multiplier(),
         }
         return next_state, float(reward), bool(done), info
 
@@ -185,7 +255,7 @@ class OffloadEnv:
         
         # If battery empty, return zeros
         if ue.battery_j <= 0.0:
-            return np.zeros(10, dtype=np.float32)
+            return np.zeros(12, dtype=np.float32)  # Increased size for scenario features
         
         # If no more tasks in current timestep, use zeros for task features
         if self.task_index >= len(self.current_tasks):
@@ -195,11 +265,17 @@ class OffloadEnv:
             r_mec = self.mec.f_available_hz / EnvConfig.MEC_MAX_COMPUTATION_RESOURCES
             r_cloud = self.cloud.f_available_hz / EnvConfig.CLOUD_TRANSMISSION_POWER
             h_lin = self.bs.channel_gain_linear(ue.f_c_ghz, ue.distance_to_bs_m)
+            # Apply channel quality multiplier
+            h_lin *= self._get_channel_quality_multiplier()
             h_norm = np.clip(-np.log10(h_lin + 1e-12) / 10.0, 0.0, 1.0)
+            
+            # Scenario features
+            mec_avail = 1.0 if self._is_mec_available() else 0.0
+            ch_quality = self._get_channel_quality_multiplier()
             
             # No task features
             return np.array(
-                [b, r_ue, r_mec, r_cloud, h_norm, 0.0, 0.0, 0.0, 0.0, 0.0],
+                [b, r_ue, r_mec, r_cloud, h_norm, 0.0, 0.0, 0.0, 0.0, 0.0, mec_avail, ch_quality],
                 dtype=np.float32,
             )
         
@@ -216,6 +292,8 @@ class OffloadEnv:
 
         # Channel gain: map path-loss-based gain to a roughly [0,1] range
         h_lin = self.bs.channel_gain_linear(ue.f_c_ghz, ue.distance_to_bs_m)
+        # Apply channel quality multiplier (Scenario 2)
+        h_lin *= self._get_channel_quality_multiplier()
         # use log scale (higher gain → lower value)
         h_norm = np.clip(-np.log10(h_lin + 1e-12) / 10.0, 0.0, 1.0)
 
@@ -225,9 +303,13 @@ class OffloadEnv:
 
         cls_oh = np.zeros(3, dtype=np.float32)
         cls_oh[task.cls - 1] = 1.0
+        
+        # Scenario features
+        mec_avail = 1.0 if self._is_mec_available() else 0.0
+        ch_quality = self._get_channel_quality_multiplier()
 
         state = np.array(
-            [b, r_ue, r_mec, r_cloud, h_norm, D_norm, T_norm, *cls_oh],
+            [b, r_ue, r_mec, r_cloud, h_norm, D_norm, T_norm, *cls_oh, mec_avail, ch_quality],
             dtype=np.float32,
         )
         return state
