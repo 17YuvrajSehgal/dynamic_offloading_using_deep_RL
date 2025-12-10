@@ -59,6 +59,10 @@ def evaluate_rl_baseline(
 
     for t in range(T):
         action = agent.select_action(state)  # 0=local, 1=mec, 2=cloud
+        
+        # Store battery BEFORE taking action (for QoE calculation)
+        battery_before = ue.battery_j
+        
         next_state, _, _, info = env.step(action)
 
         latency = float(info.get("latency", 0.0))
@@ -67,17 +71,17 @@ def evaluate_rl_baseline(
         success = bool(info.get("success", False))
         deadline = float(info.get("deadline", latency))
 
-        # ---- QoE computation: same as Simulator.step_once ----
-        #
-        if battery <= 0.0:
+        # ---- QoE computation: SAME as Paper Equation 18 ----
+        # Successful tasks: QoE = -E_consumed / B_n (current battery)
+        # Failed tasks: QoE = η (FAIL_PENALTY)
+        if battery_before <= 0.0:
             # dead UE: penalty and large "virtual" latency
             qoe = EnvConfig.FAIL_PENALTY
             latency_eff = deadline * 10.0
         else:
-            B_max = EnvConfig.UE_MAX_BATTERY
             if success:
-                qoe_raw = - (energy / B_max) * 1000.0
-                qoe = max(EnvConfig.FAIL_PENALTY, min(0.0, qoe_raw))
+                # Use battery BEFORE consumption as B_n
+                qoe = -(energy / battery_before)
                 latency_eff = latency
             else:
                 qoe = EnvConfig.FAIL_PENALTY
@@ -162,4 +166,3 @@ if __name__ == "__main__":
     # By default: assume you've already trained RL (train_rl.py),
     # then run RL eval + baselines + combined comparison.
     run_all_with_rl(train_first=False)
-
