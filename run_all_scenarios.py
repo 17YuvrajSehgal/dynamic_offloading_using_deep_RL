@@ -186,24 +186,31 @@ def run_all_scenarios(
         
         try:
             # Determine which scenario set to plot
-            if all(s.startswith('s1_') or s == 's1_base' for s in scenarios):
+            has_s1 = any(s.startswith('s1_') or s == 's1_base' for s in scenarios)
+            has_s2 = any(s.startswith('s2_') or s == 's2_base' for s in scenarios)
+            
+            if has_s1:
                 from plot_scenario_results import create_scenario_1_figure
                 print("Generating Scenario 1 complete figure...")
                 create_scenario_1_figure(results_dir)
                 print("✓ Scenario 1 plots generated\n")
-            elif all(s.startswith('s2_') or s == 's2_base' for s in scenarios):
-                print("\nScenario 2 plotting: Creating individual plots per distribution...")
-                print("(Full Scenario 2 multi-panel figure coming soon)")
-                print("Use plot_scenario_results.py manually for custom plots\n")
-            else:
-                print("Plotting for mixed scenarios not yet implemented")
-                print("Run plot_scenario_results.py manually for custom plots\n")
+            
+            if has_s2:
+                from plot_scenario_2_results import create_scenario_2_figure
+                print("Generating Scenario 2 complete figure...")
+                create_scenario_2_figure(results_dir)
+                print("✓ Scenario 2 plots generated\n")
+            
+            if not (has_s1 or has_s2):
+                print("No recognized scenario sets found for plotting\n")
                 
         except Exception as e:
             print(f"ERROR generating plots: {str(e)}")
             import traceback
             traceback.print_exc()
-            print("You can generate plots manually with: python plot_scenario_results.py\n")
+            print("You can generate plots manually with:")
+            print("  python plot_scenario_results.py      # For Scenario 1")
+            print("  python plot_scenario_2_results.py    # For Scenario 2\n")
     
     # Print summary
     total_elapsed = time.time() - start_time
