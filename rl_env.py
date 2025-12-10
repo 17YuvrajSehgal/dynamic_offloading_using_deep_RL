@@ -19,8 +19,8 @@ class OffloadEnv:
     - Failed tasks: QoE = η (FAIL_PENALTY = -0.1)
     
     Supports scenarios with:
-    - Time-varying MEC availability
-    - Time-varying channel quality
+    - Time-varying MEC availability (Scenario 1)
+    - Time-varying channel quality / communication failure (Scenario 2)
     - Task class distribution
     """
 
@@ -107,6 +107,12 @@ class OffloadEnv:
         if self.scenario_config is None:
             return 1.0  # Normal quality if no scenario
         return self.scenario_config.get_channel_quality_multiplier(self.step_count)
+    
+    def _has_communication(self) -> bool:
+        """Check if there is ANY communication capability at current timestep."""
+        if self.scenario_config is None:
+            return True  # Always have communication if no scenario
+        return self.scenario_config.has_communication(self.step_count)
 
     def step(self, action: int) -> Tuple[np.ndarray, float, bool, dict]:
         """
@@ -162,7 +168,36 @@ class OffloadEnv:
             }
             return self._build_state(), float(reward), bool(done), info
 
-        # --- Check MEC availability (Scenario 1) ---
+        # --- Check communication availability (Scenario 2: Communication Failure) ---
+        has_communication = self._has_communication()
+        
+        if action in (1, 2) and not has_communication:
+            # Offloading (MEC or Cloud) requested but NO communication available
+            # This is Scenario 2: wireless link disappeared
+            # Task FAILS because it cannot reach BS/MEC/Cloud
+            latency = task.latency_deadline * 10.0  # Artificially high latency
+            energy = 0.0  # No energy consumed if can't communicate
+            success = False
+            reward = EnvConfig.FAIL_PENALTY
+            
+            info = {
+                "latency": latency,
+                "energy": energy,
+                "success": success,
+                "battery": ue.battery_j,
+                "task_class": task.cls,
+                "deadline": task.latency_deadline,
+                "communication_failure": True,
+                "timestep": self.step_count,
+                "task_index": self.task_index - 1,
+                "total_tasks_in_timestep": len(self.current_tasks),
+            }
+            
+            # Check if done
+            done = (ue.battery_j <= 0.0) or (self.step_count >= self.max_steps and self.task_index >= len(self.current_tasks))
+            return self._build_state(), float(reward), bool(done), info
+
+        # --- Check MEC availability (Scenario 1: MEC Unavailable) ---
         mec_available = self._is_mec_available()
         if action == 1 and not mec_available:
             # MEC requested but unavailable → treat as failed task
@@ -190,17 +225,18 @@ class OffloadEnv:
 
         # --- Compute latency and energy using existing model methods ---
         if action == 0:
+            # Local execution - always works regardless of communication
             latency = ue.local_latency(task.cpu_cycles)
             energy = ue.local_energy(task.cpu_cycles)
         elif action == 1:
-            # Apply channel quality multiplier (Scenario 2)
+            # MEC offloading - communication must be available
             channel_multiplier = self._get_channel_quality_multiplier()
             latency, energy = ue.offload_to_mec(
                 task, self.bs, self.mec, n_ues=EnvConfig.NUM_UES,
                 channel_quality_multiplier=channel_multiplier
             )
         else:  # action == 2
-            # Apply channel quality multiplier (Scenario 2)
+            # Cloud offloading - communication must be available
             channel_multiplier = self._get_channel_quality_multiplier()
             latency, energy = ue.offload_to_cloud(
                 task, self.bs, self.cloud, n_ues=EnvConfig.NUM_UES,
@@ -243,6 +279,7 @@ class OffloadEnv:
             "task_index": self.task_index - 1,
             "total_tasks_in_timestep": len(self.current_tasks),
             "mec_available": mec_available,
+            "has_communication": has_communication,
             "channel_quality": self._get_channel_quality_multiplier(),
         }
         return next_state, float(reward), bool(done), info
@@ -255,7 +292,7 @@ class OffloadEnv:
         
         # If battery empty, return zeros
         if ue.battery_j <= 0.0:
-            return np.zeros(12, dtype=np.float32)  # Increased size for scenario features
+            return np.zeros(13, dtype=np.float32)  # Increased size for communication indicator
         
         # If no more tasks in current timestep, use zeros for task features
         if self.task_index >= len(self.current_tasks):
@@ -272,10 +309,11 @@ class OffloadEnv:
             # Scenario features
             mec_avail = 1.0 if self._is_mec_available() else 0.0
             ch_quality = self._get_channel_quality_multiplier()
+            has_comm = 1.0 if self._has_communication() else 0.0
             
             # No task features
             return np.array(
-                [b, r_ue, r_mec, r_cloud, h_norm, 0.0, 0.0, 0.0, 0.0, 0.0, mec_avail, ch_quality],
+                [b, r_ue, r_mec, r_cloud, h_norm, 0.0, 0.0, 0.0, 0.0, 0.0, mec_avail, ch_quality, has_comm],
                 dtype=np.float32,
             )
         
@@ -307,13 +345,14 @@ class OffloadEnv:
         # Scenario features
         mec_avail = 1.0 if self._is_mec_available() else 0.0
         ch_quality = self._get_channel_quality_multiplier()
+        has_comm = 1.0 if self._has_communication() else 0.0
 
         state = np.array(
-            [b, r_ue, r_mec, r_cloud, h_norm, D_norm, T_norm, *cls_oh, mec_avail, ch_quality],
+            [b, r_ue, r_mec, r_cloud, h_norm, D_norm, T_norm, *cls_oh, mec_avail, ch_quality, has_comm],
             dtype=np.float32,
         )
         return state
 
     # Small helper to move the current state to a torch tensor on a target device.
     def state_tensor(self, device: str = "cpu") -> torch.Tensor:
-        return torch.tensor(self._build_state(), dtype=torch.float32, device=device)
+        return torch.tensor(self._build_state(), dtype=np.float32, device=device)
