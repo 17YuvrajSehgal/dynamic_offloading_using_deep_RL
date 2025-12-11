@@ -23,7 +23,7 @@ echo ""
 SCENARIO_SET="s1"
 
 # Number of training episodes per scenario
-EPISODES=100
+EPISODES=1
 
 # What to do
 DO_TRAIN=true      # Train agents
@@ -194,7 +194,7 @@ echo "Start time: $(date)"
 echo ""
 
 # Build command
-CMD="python -u run_all_scenarios.py --scenario-set $SCENARIO_SET --episodes $EPISODES"
+CMD="python -u run_all_scenarios.py --scenario-set $SCENARIO_SET --episodes $EPISODES --all"
 
 if [ "$DO_TRAIN" = true ]; then
     CMD="$CMD --train"
