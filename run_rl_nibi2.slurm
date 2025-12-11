@@ -23,7 +23,7 @@ echo ""
 SCENARIO_SET="s2"
 
 # Number of training episodes per scenario
-EPISODES=1
+EPISODES=200
 
 # What to do
 DO_TRAIN=true      # Train agents
