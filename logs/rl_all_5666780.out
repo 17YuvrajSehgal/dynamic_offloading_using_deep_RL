@@ -1,0 +1,1410 @@
+====================================
+ RL All Scenarios Job Started
+ Job ID: 5666780
+ Node: g31
+ Time: Wed Dec 10 21:32:40 EST 2025
+====================================
+
+[CONFIG] Scenario Set: s2
+[CONFIG] Episodes per scenario: 200
+[CONFIG] Train: true
+[CONFIG] Evaluate: true
+[CONFIG] Plot: true
+
+[SETUP] Loading modules...
+[SETUP] Loaded modules:
+
+Currently Loaded Modules:
+  1) CCconfig            6) ucx/1.14.1            11) flexiblas/3.3.1
+  2) gentoo/2023   (S)   7) libfabric/1.18.0      12) imkl/2023.2.0   (math)
+  3) gcccore/.12.3 (H)   8) pmix/4.2.4            13) StdEnv/2023     (S)
+  4) gcc/12.3      (t)   9) ucc/1.2.0             14) python/3.13.2   (t)
+  5) hwloc/2.9.1        10) openmpi/4.1.5    (m)
+
+  Where:
+   H:     Hidden Module
+   S:     Module is Sticky, requires --force to unload or purge
+   m:     MPI implementations / Implémentations MPI
+   math:  Mathematical libraries / Bibliothèques mathématiques
+   t:     Tools for development / Outils de développement
+
+ 
+
+
+[SETUP] Working directory: /project/6083487/yuvraj/dynamic_offloading_using_deep_RL
+
+[SETUP] Activating virtual environment...
+[SETUP] ✓ Virtual environment activated
+
+=====================================
+PYTHON & PYTORCH DIAGNOSTICS
+=====================================
+Python version: Python 3.13.2
+Python path: /project/6083487/yuvraj/dynamic_offloading_using_deep_RL/.venv/bin/python
+Pip version: pip 24.3.1 from /project/6083487/yuvraj/dynamic_offloading_using_deep_RL/.venv/lib/python3.13/site-packages/pip (python 3.13)
+
+[PYTORCH] Testing PyTorch installation...
+PyTorch version: 2.9.0
+CUDA available: True
+CUDA version: 12.6
+cuDNN version: 90501
+GPU count: 1
+GPU name: NVIDIA H100 80GB HBM3 MIG 2g.20gb
+
+=====================================
+ENVIRONMENT VARIABLES
+=====================================
+SLURM_JOB_ID: 5666780
+SLURM_JOB_NAME: rl_all_s2
+SLURM_NODELIST: g31
+SLURM_CPUS_PER_TASK: 4
+SLURM_MEM_PER_NODE: 32768
+CUDA_VISIBLE_DEVICES: MIG-3de2563c-0966-5e12-8acf-685fc9a106c5
+
+[SETUP] Setting CPU threading limits...
+[SETUP] OMP_NUM_THREADS=4
+[SETUP] MKL_NUM_THREADS=4
+
+=====================================
+GPU DIAGNOSTICS (nvidia-smi)
+=====================================
+Wed Dec 10 21:32:46 2025       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 580.82.07              Driver Version: 580.82.07      CUDA Version: 13.0     |
++-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA H100 80GB HBM3          On  |   00000000:3B:00.0 Off |                   On |
+| N/A   40C    P0            355W /  700W |   14748MiB /  81559MiB |     N/A      Default |
+|                                         |                        |              Enabled |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| MIG devices:                                                                            |
++------------------+----------------------------------+-----------+-----------------------+
+| GPU  GI  CI  MIG |              Shared Memory-Usage |        Vol|        Shared         |
+|      ID  ID  Dev |                Shared BAR1-Usage | SM     Unc| CE ENC  DEC  OFA  JPG |
+|                  |                                  |        ECC|                       |
+|==================+==================================+===========+=======================|
+|  0    5   0   0  |              29MiB / 20096MiB    | 32      0 |  2   0    2    0    2 |
+|                  |               0MiB / 12370MiB    |           |                       |
++------------------+----------------------------------+-----------+-----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+
+[GPU] ✓ GPU detected
+
+=====================================
+PYTHON PACKAGE VERIFICATION
+=====================================
+[PACKAGES] Checking required packages...
+NumPy: 2.3.3
+Pandas: 2.3.3
+Matplotlib: 3.10.0
+PyTorch: 2.9.0
+All packages verified
+
+=====================================
+AVAILABLE SCENARIOS
+=====================================
+
+Available Scenarios:
+================================================================================
+
+** SCENARIO 1: MEC Unavailability **
+
+[s1_base]
+  Name: Scenario 1 - Base
+  Description: MEC unavailable during timesteps 500-750 and 1250-1500
+  Task Distribution: Class1=33%, Class2=34%, Class3=33%
+
+[s1_class1_90]
+  Name: Scenario 1 - 90% Class 1
+  Description: MEC unavailable 500-750, 1250-1500; 90% delay-sensitive tasks
+  Task Distribution: Class1=90%, Class2=5%, Class3=5%
+
+[s1_class2_90]
+  Name: Scenario 1 - 90% Class 2
+  Description: MEC unavailable 500-750, 1250-1500; 90% energy-sensitive tasks
+  Task Distribution: Class1=5%, Class2=90%, Class3=5%
+
+[s1_class3_90]
+  Name: Scenario 1 - 90% Class 3
+  Description: MEC unavailable 500-750, 1250-1500; 90% insensitive tasks
+  Task Distribution: Class1=5%, Class2=5%, Class3=90%
+
+[s1_random]
+  Name: Scenario 1 - Random Distribution
+  Description: MEC unavailable 500-750, 1250-1500; equal task distribution
+  Task Distribution: Class1=33%, Class2=34%, Class3=33%
+
+--------------------------------------------------------------------------------
+
+** SCENARIO 2: Communication Failure **
+
+[s2_base]
+  Name: Scenario 2 - Base
+  Description: MEC stable, communication failure 500-1000
+  Task Distribution: Class1=33%, Class2=34%, Class3=33%
+
+[s2_class1_90]
+  Name: Scenario 2 - 90% Class 1
+  Description: Communication failure 500-1000; 90% delay-sensitive tasks
+  Task Distribution: Class1=90%, Class2=5%, Class3=5%
+
+[s2_class2_90]
+  Name: Scenario 2 - 90% Class 2
+  Description: Communication failure 500-1000; 90% energy-sensitive tasks
+  Task Distribution: Class1=5%, Class2=90%, Class3=5%
+
+[s2_class3_90]
+  Name: Scenario 2 - 90% Class 3
+  Description: Communication failure 500-1000; 90% insensitive tasks
+  Task Distribution: Class1=5%, Class2=5%, Class3=90%
+
+[s2_random]
+  Name: Scenario 2 - Random Distribution
+  Description: Communication failure 500-1000; equal task distribution
+  Task Distribution: Class1=33%, Class2=34%, Class3=33%
+
+================================================================================
+
+Predefined Scenario Sets:
+================================================================================
+
+s1:
+  - s1_class1_90
+  - s1_class2_90
+  - s1_class3_90
+  - s1_random
+
+s1_base:
+  - s1_base
+
+s2:
+  - s2_class1_90
+  - s2_class2_90
+  - s2_class3_90
+  - s2_random
+
+s2_base:
+  - s2_base
+
+all:
+  - s1_class1_90
+  - s1_class2_90
+  - s1_class3_90
+  - s1_random
+  - s2_class1_90
+  - s2_class2_90
+  - s2_class3_90
+  - s2_random
+
+================================================================================
+
+=====================================
+RUNNING ALL SCENARIOS: s2
+=====================================
+Start time: Wed Dec 10 21:32:52 EST 2025
+
+[CMD] python -u run_all_scenarios.py --scenario-set s2 --episodes 200 --all --train --eval --plot
+
+
+================================================================================
+RUNNING ALL SCENARIOS
+================================================================================
+Scenarios to run: ['s2_class1_90', 's2_class2_90', 's2_class3_90', 's2_random']
+Training episodes: 200
+Train RL: True
+Evaluate RL: True
+Run baselines: True
+Plot: True
+Device: auto
+================================================================================
+
+
+################################################################################
+# SCENARIO 1/4: s2_class1_90
+################################################################################
+
+Name: Scenario 2 - 90% Class 1
+Description: Communication failure 500-1000; 90% delay-sensitive tasks
+Task distribution: Class1=90%, Class2=5%, Class3=5%
+
+
+================================================================================
+[s2_class1_90] Running Baseline Policies
+================================================================================
+
+
+================================================================================
+RUNNING ALL BASELINES ON: s2_class1_90
+================================================================================
+
+
+################################################################################
+# Running LOCAL policy
+################################################################################
+
+Running LOCAL policy on s2_class1_90...
+  Progress: 200/2000 (10.0%)
+  Progress: 400/2000 (20.0%)
+  Progress: 600/2000 (30.0%)
+  Progress: 800/2000 (40.0%)
+
+✅ Saved LOCAL results to results/scenarios/s2_class1_90/local_metrics.csv
+
+================================================================================
+LOCAL POLICY SUMMARY
+================================================================================
+Mean QoE: -0.054404
+Mean Latency: 0.030496 s
+Mean Energy: 1.952 J
+Final Battery: 0.00 J
+Success Rate: 48.4%
+Offload Ratio: 0.000
+================================================================================
+
+
+################################################################################
+# Running MEC policy
+################################################################################
+
+Running MEC policy on s2_class1_90...
+  Progress: 200/2000 (10.0%)
+  Progress: 400/2000 (20.0%)
+  Progress: 600/2000 (30.0%)
+  Progress: 800/2000 (40.0%)
+  Progress: 1000/2000 (50.0%)
+  Progress: 1200/2000 (60.0%)
+  Progress: 1400/2000 (70.0%)
+  Progress: 1600/2000 (80.0%)
+  Progress: 1800/2000 (90.0%)
+  Progress: 2000/2000 (100.0%)
+
+✅ Saved MEC results to results/scenarios/s2_class1_90/mec_metrics.csv
+
+================================================================================
+MEC POLICY SUMMARY
+================================================================================
+Mean QoE: -0.025001
+Mean Latency: 123.422034 s
+Mean Energy: 0.003 J
+Final Battery: 3793.52 J
+Success Rate: 75.0%
+Offload Ratio: 1.000
+================================================================================
+
+
+################################################################################
+# Running CLOUD policy
+################################################################################
+
+Running CLOUD policy on s2_class1_90...
+  Progress: 200/2000 (10.0%)
+  Progress: 400/2000 (20.0%)
+  Progress: 600/2000 (30.0%)
+  Progress: 800/2000 (40.0%)
+  Progress: 1000/2000 (50.0%)
+  Progress: 1200/2000 (60.0%)
+  Progress: 1400/2000 (70.0%)
+  Progress: 1600/2000 (80.0%)
+  Progress: 1800/2000 (90.0%)
+  Progress: 2000/2000 (100.0%)
+
+✅ Saved CLOUD results to results/scenarios/s2_class1_90/cloud_metrics.csv
+
+================================================================================
+CLOUD POLICY SUMMARY
+================================================================================
+Mean QoE: -0.025001
+Mean Latency: 133.507235 s
+Mean Energy: 0.003 J
+Final Battery: 3793.65 J
+Success Rate: 75.0%
+Offload Ratio: 1.000
+================================================================================
+
+
+################################################################################
+# Running RANDOM policy
+################################################################################
+
+Running RANDOM policy on s2_class1_90...
+  Progress: 200/2000 (10.0%)
+  Progress: 400/2000 (20.0%)
+  Progress: 600/2000 (30.0%)
+  Progress: 800/2000 (40.0%)
+  Progress: 1000/2000 (50.0%)
+  Progress: 1200/2000 (60.0%)
+  Progress: 1400/2000 (70.0%)
+  Progress: 1600/2000 (80.0%)
+  Progress: 1800/2000 (90.0%)
+  Progress: 2000/2000 (100.0%)
+
+✅ Saved RANDOM results to results/scenarios/s2_class1_90/random_metrics.csv
+
+================================================================================
+RANDOM POLICY SUMMARY
+================================================================================
+Mean QoE: -0.017357
+Mean Latency: 81.310426 s
+Mean Energy: 1.360 J
+Final Battery: 1080.88 J
+Success Rate: 83.2%
+Offload Ratio: 0.662
+================================================================================
+
+
+================================================================================
+BASELINE COMPARISON SUMMARY
+================================================================================
+Policy              Mean QoE   Final Battery    Success Rate
+--------------------------------------------------------------------------------
+local              -0.054404            0.00 J          48.4%
+mec                -0.025001         3793.52 J          75.0%
+cloud              -0.025001         3793.65 J          75.0%
+random             -0.017357         1080.88 J          83.2%
+--------------------------------------------------------------------------------
+
+✅ All baseline results saved to: results/scenarios/s2_class1_90/
+================================================================================
+
+[s2_class1_90] ✓ Baselines complete
+
+
+================================================================================
+[s2_class1_90] Training RL Agent
+================================================================================
+
+
+============================================================
+GPU DIAGNOSTICS
+============================================================
+PyTorch version: 2.9.0
+CUDA available: True
+CUDA version: 12.6
+cuDNN version: 90501
+Number of GPUs: 1
+
+GPU 0: NVIDIA H100 80GB HBM3 MIG 2g.20gb
+  Memory allocated: 0.00 GB
+  Memory reserved: 0.00 GB
+  Max memory allocated: 0.00 GB
+
+Current CUDA device: 0
+CUDA_VISIBLE_DEVICES: MIG-3de2563c-0966-5e12-8acf-685fc9a106c5
+============================================================
+
+
+[train_rl_on_scenario] Using device: cuda
+
+================================================================================
+TRAINING ON SCENARIO: Scenario 2 - 90% Class 1
+================================================================================
+Description: Communication failure 500-1000; 90% delay-sensitive tasks
+Task Distribution: Class1=90.0%, Class2=5.0%, Class3=5.0%
+Total timesteps: 2000
+Training episodes: 200
+================================================================================
+
+State dimension: 13
+Action space: 3 (local, MEC, cloud)
+
+Actor device: cuda:0
+Critic device: cuda:0
+
+Starting training...
+
+Episode    1/200 | steps= 3347 | return=   -5.849 | avg_return(10)=   -5.849 | battery=   0.00 J
+Episode   10/200 | steps= 5355 | return=  -13.436 | avg_return(10)=  -13.832 | battery=   0.00 J
+Episode   20/200 | steps= 5024 | return=   -8.378 | avg_return(10)=  -14.087 | battery=   0.00 J
+Episode   30/200 | steps= 5250 | return=   -8.912 | avg_return(10)=  -10.351 | battery=   0.00 J
+Episode   40/200 | steps= 5093 | return= -104.587 | avg_return(10)=  -19.681 | battery=   0.00 J
+Episode   50/200 | steps= 4985 | return=  -12.080 | avg_return(10)=  -14.087 | battery=   0.00 J
+Episode   60/200 | steps= 4912 | return=  -10.623 | avg_return(10)=  -10.842 | battery=   0.00 J
+Episode   70/200 | steps= 5123 | return=   -8.125 | avg_return(10)=  -11.461 | battery=   0.00 J
+Episode   80/200 | steps= 5076 | return=   -9.802 | avg_return(10)=   -9.477 | battery=   0.00 J
+Episode   90/200 | steps= 5036 | return=  -12.462 | avg_return(10)=  -11.071 | battery=   0.00 J
+Episode  100/200 | steps= 5084 | return=  -15.545 | avg_return(10)=  -38.084 | battery=   0.00 J
+Episode  110/200 | steps= 5064 | return=  -10.749 | avg_return(10)=  -10.359 | battery=   0.00 J
+Episode  120/200 | steps= 5135 | return=   -9.880 | avg_return(10)=  -13.309 | battery=   0.00 J
+Episode  130/200 | steps= 5102 | return=  -68.202 | avg_return(10)=  -17.786 | battery=   0.00 J
+Episode  140/200 | steps= 5084 | return=   -9.652 | avg_return(10)=  -12.309 | battery=   0.00 J
+Episode  150/200 | steps= 5007 | return=  -11.499 | avg_return(10)=  -11.330 | battery=   0.00 J
+Episode  160/200 | steps= 5166 | return=  -48.902 | avg_return(10)=  -17.034 | battery=   0.00 J
+Episode  170/200 | steps= 5311 | return=  -15.650 | avg_return(10)=  -26.173 | battery=   0.00 J
+Episode  180/200 | steps= 5213 | return=  -14.320 | avg_return(10)=  -27.137 | battery=   0.00 J
+Episode  190/200 | steps= 5126 | return=  -10.297 | avg_return(10)=  -16.723 | battery=   0.00 J
+Episode  200/200 | steps= 5058 | return=  -13.967 | avg_return(10)= -165.886 | battery=   0.00 J
+
+================================================================================
+TRAINING SUMMARY
+================================================================================
+Scenario: Scenario 2 - 90% Class 1
+Total episodes: 200
+Final episode return: -13.967
+Avg return (last 10): -165.886
+Best episode return: -5.849
+================================================================================
+
+✅ Saved actor to results/scenarios/s2_class1_90/actor.pt
+✅ Saved critic to results/scenarios/s2_class1_90/critic.pt
+
+[s2_class1_90] ✓ RL training complete
+
+
+================================================================================
+[s2_class1_90] Evaluating RL Agent
+================================================================================
+
+
+================================================================================
+EVALUATING RL AGENT ON: Scenario 2 - 90% Class 1
+================================================================================
+Loading model from: results/scenarios/s2_class1_90
+
+✅ Loaded trained actor from results/scenarios/s2_class1_90/actor.pt
+
+Running evaluation...
+  Progress: 200/2000 (10.0%)
+  Progress: 400/2000 (20.0%)
+  Progress: 600/2000 (30.0%)
+  Progress: 800/2000 (40.0%)
+  Progress: 1000/2000 (50.0%)
+  Progress: 1200/2000 (60.0%)
+  Progress: 1400/2000 (70.0%)
+
+WARNING: Battery depleted at timestep 1597
+
+✅ Saved evaluation results to results/scenarios/s2_class1_90/rl_agent_metrics.csv
+
+================================================================================
+EVALUATION SUMMARY
+================================================================================
+Mean QoE: -0.005865
+Mean Latency: 0.041379 s
+Mean Energy: 2.496 J
+Final Battery: 0.00 J
+Success Rate: 100.0%
+Offload Ratio: 0.287
+================================================================================
+
+[s2_class1_90] ✓ RL evaluation complete
+  Mean QoE: -0.005865
+  Final Battery: 0.00 J
+  Success Rate: 100.0%
+
+[s2_class1_90] Time elapsed: 62.8 minutes
+
+
+################################################################################
+# SCENARIO 2/4: s2_class2_90
+################################################################################
+
+Name: Scenario 2 - 90% Class 2
+Description: Communication failure 500-1000; 90% energy-sensitive tasks
+Task distribution: Class1=5%, Class2=90%, Class3=5%
+
+
+================================================================================
+[s2_class2_90] Running Baseline Policies
+================================================================================
+
+
+================================================================================
+RUNNING ALL BASELINES ON: s2_class2_90
+================================================================================
+
+
+################################################################################
+# Running LOCAL policy
+################################################################################
+
+Running LOCAL policy on s2_class2_90...
+  Progress: 200/2000 (10.0%)
+  Progress: 400/2000 (20.0%)
+  Progress: 600/2000 (30.0%)
+
+✅ Saved LOCAL results to results/scenarios/s2_class2_90/local_metrics.csv
+
+================================================================================
+LOCAL POLICY SUMMARY
+================================================================================
+Mean QoE: -0.064193
+Mean Latency: 0.030636 s
+Mean Energy: 1.961 J
+Final Battery: 0.00 J
+Success Rate: 39.5%
+Offload Ratio: 0.000
+================================================================================
+
+
+################################################################################
+# Running MEC policy
+################################################################################
+
+Running MEC policy on s2_class2_90...
+  Progress: 200/2000 (10.0%)
+  Progress: 400/2000 (20.0%)
+  Progress: 600/2000 (30.0%)
+  Progress: 800/2000 (40.0%)
+  Progress: 1000/2000 (50.0%)
+  Progress: 1200/2000 (60.0%)
+  Progress: 1400/2000 (70.0%)
+  Progress: 1600/2000 (80.0%)
+  Progress: 1800/2000 (90.0%)
+  Progress: 2000/2000 (100.0%)
+
+✅ Saved MEC results to results/scenarios/s2_class2_90/mec_metrics.csv
+
+================================================================================
+MEC POLICY SUMMARY
+================================================================================
+Mean QoE: -0.025001
+Mean Latency: 157.011071 s
+Mean Energy: 0.004 J
+Final Battery: 3792.30 J
+Success Rate: 75.0%
+Offload Ratio: 1.000
+================================================================================
+
+
+################################################################################
+# Running CLOUD policy
+################################################################################
+
+Running CLOUD policy on s2_class2_90...
+  Progress: 200/2000 (10.0%)
+  Progress: 400/2000 (20.0%)
+  Progress: 600/2000 (30.0%)
+  Progress: 800/2000 (40.0%)
+  Progress: 1000/2000 (50.0%)
+  Progress: 1200/2000 (60.0%)
+  Progress: 1400/2000 (70.0%)
+  Progress: 1600/2000 (80.0%)
+  Progress: 1800/2000 (90.0%)
+  Progress: 2000/2000 (100.0%)
+
+✅ Saved CLOUD results to results/scenarios/s2_class2_90/cloud_metrics.csv
+
+================================================================================
+CLOUD POLICY SUMMARY
+================================================================================
+Mean QoE: -0.025001
+Mean Latency: 169.513796 s
+Mean Energy: 0.004 J
+Final Battery: 3792.36 J
+Success Rate: 75.0%
+Offload Ratio: 1.000
+================================================================================
+
+
+################################################################################
+# Running RANDOM policy
+################################################################################
+
+Running RANDOM policy on s2_class2_90...
+  Progress: 200/2000 (10.0%)
+  Progress: 400/2000 (20.0%)
+  Progress: 600/2000 (30.0%)
+  Progress: 800/2000 (40.0%)
+  Progress: 1000/2000 (50.0%)
+  Progress: 1200/2000 (60.0%)
+  Progress: 1400/2000 (70.0%)
+  Progress: 1600/2000 (80.0%)
+  Progress: 1800/2000 (90.0%)
+  Progress: 2000/2000 (100.0%)
+
+✅ Saved RANDOM results to results/scenarios/s2_class2_90/random_metrics.csv
+
+================================================================================
+RANDOM POLICY SUMMARY
+================================================================================
+Mean QoE: -0.017604
+Mean Latency: 101.048502 s
+Mean Energy: 1.541 J
+Final Battery: 717.62 J
+Success Rate: 83.2%
+Offload Ratio: 0.670
+================================================================================
+
+
+================================================================================
+BASELINE COMPARISON SUMMARY
+================================================================================
+Policy              Mean QoE   Final Battery    Success Rate
+--------------------------------------------------------------------------------
+local              -0.064193            0.00 J          39.5%
+mec                -0.025001         3792.30 J          75.0%
+cloud              -0.025001         3792.36 J          75.0%
+random             -0.017604          717.62 J          83.2%
+--------------------------------------------------------------------------------
+
+✅ All baseline results saved to: results/scenarios/s2_class2_90/
+================================================================================
+
+[s2_class2_90] ✓ Baselines complete
+
+
+================================================================================
+[s2_class2_90] Training RL Agent
+================================================================================
+
+
+============================================================
+GPU DIAGNOSTICS
+============================================================
+PyTorch version: 2.9.0
+CUDA available: True
+CUDA version: 12.6
+cuDNN version: 90501
+Number of GPUs: 1
+
+GPU 0: NVIDIA H100 80GB HBM3 MIG 2g.20gb
+  Memory allocated: 0.07 GB
+  Memory reserved: 0.07 GB
+  Max memory allocated: 0.07 GB
+
+Current CUDA device: 0
+CUDA_VISIBLE_DEVICES: MIG-3de2563c-0966-5e12-8acf-685fc9a106c5
+============================================================
+
+
+[train_rl_on_scenario] Using device: cuda
+
+================================================================================
+TRAINING ON SCENARIO: Scenario 2 - 90% Class 2
+================================================================================
+Description: Communication failure 500-1000; 90% energy-sensitive tasks
+Task Distribution: Class1=5.0%, Class2=90.0%, Class3=5.0%
+Total timesteps: 2000
+Training episodes: 200
+================================================================================
+
+State dimension: 13
+Action space: 3 (local, MEC, cloud)
+
+Actor device: cuda:0
+Critic device: cuda:0
+
+Starting training...
+
+Episode    1/200 | steps= 3436 | return=   -8.852 | avg_return(10)=   -8.852 | battery=   0.00 J
+Episode   10/200 | steps= 5230 | return=  -12.703 | avg_return(10)=  -13.345 | battery=   0.00 J
+Episode   20/200 | steps= 5125 | return=   -6.494 | avg_return(10)=   -9.427 | battery=   0.00 J
+Episode   30/200 | steps= 4995 | return=   -9.098 | avg_return(10)=   -9.253 | battery=   0.00 J
+Episode   40/200 | steps= 5205 | return=  -17.096 | avg_return(10)=  -12.921 | battery=   0.00 J
+Episode   50/200 | steps= 5222 | return=  -43.945 | avg_return(10)=  -46.620 | battery=   0.00 J
+Episode   60/200 | steps= 6843 | return= -177.747 | avg_return(10)= -128.283 | battery=   0.00 J
+Episode   70/200 | steps= 5975 | return= -115.990 | avg_return(10)= -183.421 | battery=   0.00 J
+Episode   80/200 | steps= 7166 | return= -233.378 | avg_return(10)= -235.076 | battery=   0.00 J
+Episode   90/200 | steps= 5760 | return=  -84.392 | avg_return(10)= -164.097 | battery=   0.00 J
+Episode  100/200 | steps= 6028 | return= -116.083 | avg_return(10)= -193.248 | battery=   0.00 J
+Episode  110/200 | steps= 5421 | return=  -49.035 | avg_return(10)= -237.910 | battery=   0.00 J
+Episode  120/200 | steps= 6421 | return= -142.015 | avg_return(10)= -175.893 | battery=   0.00 J
+Episode  130/200 | steps= 5983 | return=  -96.485 | avg_return(10)= -201.566 | battery=   0.00 J
+Episode  140/200 | steps= 6322 | return= -139.272 | avg_return(10)= -124.839 | battery=   0.00 J
+Episode  150/200 | steps= 6056 | return= -110.204 | avg_return(10)= -164.319 | battery=   0.00 J
+Episode  160/200 | steps= 5703 | return=  -72.480 | avg_return(10)=  -79.223 | battery=   0.00 J
+Episode  170/200 | steps= 5966 | return=  -93.549 | avg_return(10)= -103.922 | battery=   0.00 J
+Episode  180/200 | steps= 6496 | return= -164.273 | avg_return(10)=  -67.646 | battery=   0.00 J
+Episode  190/200 | steps= 6610 | return= -164.845 | avg_return(10)= -165.113 | battery=   0.00 J
+Episode  200/200 | steps= 6744 | return= -169.391 | avg_return(10)= -140.554 | battery=   0.00 J
+
+================================================================================
+TRAINING SUMMARY
+================================================================================
+Scenario: Scenario 2 - 90% Class 2
+Total episodes: 200
+Final episode return: -169.391
+Avg return (last 10): -140.554
+Best episode return: -6.148
+================================================================================
+
+✅ Saved actor to results/scenarios/s2_class2_90/actor.pt
+✅ Saved critic to results/scenarios/s2_class2_90/critic.pt
+
+[s2_class2_90] ✓ RL training complete
+
+
+================================================================================
+[s2_class2_90] Evaluating RL Agent
+================================================================================
+
+
+================================================================================
+EVALUATING RL AGENT ON: Scenario 2 - 90% Class 2
+================================================================================
+Loading model from: results/scenarios/s2_class2_90
+
+✅ Loaded trained actor from results/scenarios/s2_class2_90/actor.pt
+
+Running evaluation...
+  Progress: 200/2000 (10.0%)
+  Progress: 400/2000 (20.0%)
+  Progress: 600/2000 (30.0%)
+  Progress: 800/2000 (40.0%)
+  Progress: 1000/2000 (50.0%)
+  Progress: 1200/2000 (60.0%)
+  Progress: 1400/2000 (70.0%)
+  Progress: 1600/2000 (80.0%)
+  Progress: 1800/2000 (90.0%)
+  Progress: 2000/2000 (100.0%)
+
+✅ Saved evaluation results to results/scenarios/s2_class2_90/rl_agent_metrics.csv
+
+================================================================================
+EVALUATION SUMMARY
+================================================================================
+Mean QoE: -0.000463
+Mean Latency: 0.024264 s
+Mean Energy: 1.206 J
+Final Battery: 1567.54 J
+Success Rate: 100.0%
+Offload Ratio: 0.691
+================================================================================
+
+[s2_class2_90] ✓ RL evaluation complete
+  Mean QoE: -0.000463
+  Final Battery: 1567.54 J
+  Success Rate: 100.0%
+
+[s2_class2_90] Time elapsed: 76.5 minutes
+
+
+################################################################################
+# SCENARIO 3/4: s2_class3_90
+################################################################################
+
+Name: Scenario 2 - 90% Class 3
+Description: Communication failure 500-1000; 90% insensitive tasks
+Task distribution: Class1=5%, Class2=5%, Class3=90%
+
+
+================================================================================
+[s2_class3_90] Running Baseline Policies
+================================================================================
+
+
+================================================================================
+RUNNING ALL BASELINES ON: s2_class3_90
+================================================================================
+
+
+################################################################################
+# Running LOCAL policy
+################################################################################
+
+Running LOCAL policy on s2_class3_90...
+
+✅ Saved LOCAL results to results/scenarios/s2_class3_90/local_metrics.csv
+
+================================================================================
+LOCAL POLICY SUMMARY
+================================================================================
+Mean QoE: -0.095649
+Mean Latency: 0.031271 s
+Mean Energy: 2.001 J
+Final Battery: 0.00 J
+Success Rate: 7.6%
+Offload Ratio: 0.000
+================================================================================
+
+
+################################################################################
+# Running MEC policy
+################################################################################
+
+Running MEC policy on s2_class3_90...
+  Progress: 200/2000 (10.0%)
+  Progress: 400/2000 (20.0%)
+  Progress: 600/2000 (30.0%)
+  Progress: 800/2000 (40.0%)
+  Progress: 1000/2000 (50.0%)
+  Progress: 1200/2000 (60.0%)
+  Progress: 1400/2000 (70.0%)
+  Progress: 1600/2000 (80.0%)
+  Progress: 1800/2000 (90.0%)
+  Progress: 2000/2000 (100.0%)
+
+✅ Saved MEC results to results/scenarios/s2_class3_90/mec_metrics.csv
+
+================================================================================
+MEC POLICY SUMMARY
+================================================================================
+Mean QoE: -0.025006
+Mean Latency: 1353.584901 s
+Mean Energy: 0.023 J
+Final Battery: 3754.53 J
+Success Rate: 75.0%
+Offload Ratio: 1.000
+================================================================================
+
+
+################################################################################
+# Running CLOUD policy
+################################################################################
+
+Running CLOUD policy on s2_class3_90...
+  Progress: 200/2000 (10.0%)
+  Progress: 400/2000 (20.0%)
+  Progress: 600/2000 (30.0%)
+  Progress: 800/2000 (40.0%)
+  Progress: 1000/2000 (50.0%)
+  Progress: 1200/2000 (60.0%)
+  Progress: 1400/2000 (70.0%)
+  Progress: 1600/2000 (80.0%)
+  Progress: 1800/2000 (90.0%)
+  Progress: 2000/2000 (100.0%)
+
+✅ Saved CLOUD results to results/scenarios/s2_class3_90/cloud_metrics.csv
+
+================================================================================
+CLOUD POLICY SUMMARY
+================================================================================
+Mean QoE: -0.025006
+Mean Latency: 1361.219687 s
+Mean Energy: 0.023 J
+Final Battery: 3754.56 J
+Success Rate: 75.0%
+Offload Ratio: 1.000
+================================================================================
+
+
+################################################################################
+# Running RANDOM policy
+################################################################################
+
+Running RANDOM policy on s2_class3_90...
+  Progress: 200/2000 (10.0%)
+  Progress: 400/2000 (20.0%)
+
+✅ Saved RANDOM results to results/scenarios/s2_class3_90/random_metrics.csv
+
+================================================================================
+RANDOM POLICY SUMMARY
+================================================================================
+Mean QoE: -0.082926
+Mean Latency: 0.036422 s
+Mean Energy: 1.987 J
+Final Battery: 0.00 J
+Success Rate: 20.6%
+Offload Ratio: 0.134
+================================================================================
+
+
+================================================================================
+BASELINE COMPARISON SUMMARY
+================================================================================
+Policy              Mean QoE   Final Battery    Success Rate
+--------------------------------------------------------------------------------
+local              -0.095649            0.00 J           7.6%
+mec                -0.025006         3754.53 J          75.0%
+cloud              -0.025006         3754.56 J          75.0%
+random             -0.082926            0.00 J          20.6%
+--------------------------------------------------------------------------------
+
+✅ All baseline results saved to: results/scenarios/s2_class3_90/
+================================================================================
+
+[s2_class3_90] ✓ Baselines complete
+
+
+================================================================================
+[s2_class3_90] Training RL Agent
+================================================================================
+
+
+============================================================
+GPU DIAGNOSTICS
+============================================================
+PyTorch version: 2.9.0
+CUDA available: True
+CUDA version: 12.6
+cuDNN version: 90501
+Number of GPUs: 1
+
+GPU 0: NVIDIA H100 80GB HBM3 MIG 2g.20gb
+  Memory allocated: 0.07 GB
+  Memory reserved: 0.07 GB
+  Max memory allocated: 0.07 GB
+
+Current CUDA device: 0
+CUDA_VISIBLE_DEVICES: MIG-3de2563c-0966-5e12-8acf-685fc9a106c5
+============================================================
+
+
+[train_rl_on_scenario] Using device: cuda
+
+================================================================================
+TRAINING ON SCENARIO: Scenario 2 - 90% Class 3
+================================================================================
+Description: Communication failure 500-1000; 90% insensitive tasks
+Task Distribution: Class1=5.0%, Class2=5.0%, Class3=90.0%
+Total timesteps: 2000
+Training episodes: 200
+================================================================================
+
+State dimension: 13
+Action space: 3 (local, MEC, cloud)
+
+Actor device: cuda:0
+Critic device: cuda:0
+
+Starting training...
+
+Episode    1/200 | steps=  637 | return=   -7.771 | avg_return(10)=   -7.771 | battery=   0.00 J
+Episode   10/200 | steps= 5555 | return=  -47.015 | avg_return(10)=  -46.046 | battery=   0.00 J
+Episode   20/200 | steps= 5041 | return=   -8.545 | avg_return(10)=  -14.944 | battery=   0.00 J
+Episode   30/200 | steps= 5233 | return=  -22.553 | avg_return(10)=  -19.434 | battery=   0.00 J
+Episode   40/200 | steps= 5406 | return=  -43.702 | avg_return(10)=  -40.078 | battery=   0.00 J
+Episode   50/200 | steps= 5236 | return=  -43.981 | avg_return(10)=  -31.650 | battery=   0.00 J
+Episode   60/200 | steps= 5086 | return=   -9.245 | avg_return(10)=  -33.781 | battery=   0.00 J
+Episode   70/200 | steps= 5402 | return=  -38.895 | avg_return(10)=  -51.635 | battery=   0.00 J
+Episode   80/200 | steps= 5299 | return=  -40.773 | avg_return(10)=  -39.198 | battery=   0.00 J
+Episode   90/200 | steps= 5200 | return=  -30.683 | avg_return(10)=  -38.895 | battery=   0.00 J
+Episode  100/200 | steps= 5257 | return=  -32.805 | avg_return(10)=  -44.860 | battery=   0.00 J
+Episode  110/200 | steps= 5962 | return=  -84.434 | avg_return(10)=  -54.536 | battery=   0.00 J
+Episode  120/200 | steps= 5407 | return=  -47.673 | avg_return(10)=  -54.853 | battery=   0.00 J
+Episode  130/200 | steps= 5437 | return=  -38.964 | avg_return(10)=  -44.367 | battery=   0.00 J
+Episode  140/200 | steps= 5814 | return=  -78.298 | avg_return(10)=  -94.583 | battery=   0.00 J
+Episode  150/200 | steps= 5586 | return=  -67.429 | avg_return(10)=  -70.594 | battery=   0.00 J
+Episode  160/200 | steps= 5352 | return= -104.519 | avg_return(10)=  -58.572 | battery=   0.00 J
+Episode  170/200 | steps= 6046 | return=  -83.006 | avg_return(10)=  -82.424 | battery=   0.00 J
+Episode  180/200 | steps= 5529 | return=  -72.254 | avg_return(10)=  -62.320 | battery=   0.00 J
+Episode  190/200 | steps= 6154 | return= -113.323 | avg_return(10)=  -89.603 | battery=   0.00 J
+Episode  200/200 | steps= 5944 | return= -111.726 | avg_return(10)=  -81.211 | battery=   0.00 J
+
+================================================================================
+TRAINING SUMMARY
+================================================================================
+Scenario: Scenario 2 - 90% Class 3
+Total episodes: 200
+Final episode return: -111.726
+Avg return (last 10): -81.211
+Best episode return: -5.730
+================================================================================
+
+✅ Saved actor to results/scenarios/s2_class3_90/actor.pt
+✅ Saved critic to results/scenarios/s2_class3_90/critic.pt
+
+[s2_class3_90] ✓ RL training complete
+
+
+================================================================================
+[s2_class3_90] Evaluating RL Agent
+================================================================================
+
+
+================================================================================
+EVALUATING RL AGENT ON: Scenario 2 - 90% Class 3
+================================================================================
+Loading model from: results/scenarios/s2_class3_90
+
+✅ Loaded trained actor from results/scenarios/s2_class3_90/actor.pt
+
+Running evaluation...
+  Progress: 200/2000 (10.0%)
+  Progress: 400/2000 (20.0%)
+  Progress: 600/2000 (30.0%)
+  Progress: 800/2000 (40.0%)
+  Progress: 1000/2000 (50.0%)
+  Progress: 1200/2000 (60.0%)
+  Progress: 1400/2000 (70.0%)
+  Progress: 1600/2000 (80.0%)
+  Progress: 1800/2000 (90.0%)
+  Progress: 2000/2000 (100.0%)
+
+✅ Saved evaluation results to results/scenarios/s2_class3_90/rl_agent_metrics.csv
+
+================================================================================
+EVALUATION SUMMARY
+================================================================================
+Mean QoE: -0.000524
+Mean Latency: 0.058371 s
+Mean Energy: 1.300 J
+Final Battery: 1380.03 J
+Success Rate: 100.0%
+Offload Ratio: 0.936
+================================================================================
+
+[s2_class3_90] ✓ RL evaluation complete
+  Mean QoE: -0.000524
+  Final Battery: 1380.03 J
+  Success Rate: 100.0%
+
+[s2_class3_90] Time elapsed: 68.5 minutes
+
+
+################################################################################
+# SCENARIO 4/4: s2_random
+################################################################################
+
+Name: Scenario 2 - Random Distribution
+Description: Communication failure 500-1000; equal task distribution
+Task distribution: Class1=33%, Class2=34%, Class3=33%
+
+
+================================================================================
+[s2_random] Running Baseline Policies
+================================================================================
+
+
+================================================================================
+RUNNING ALL BASELINES ON: s2_random
+================================================================================
+
+
+################################################################################
+# Running LOCAL policy
+################################################################################
+
+Running LOCAL policy on s2_random...
+  Progress: 200/2000 (10.0%)
+
+✅ Saved LOCAL results to results/scenarios/s2_random/local_metrics.csv
+
+================================================================================
+LOCAL POLICY SUMMARY
+================================================================================
+Mean QoE: -0.087822
+Mean Latency: 0.031181 s
+Mean Energy: 1.996 J
+Final Battery: 0.00 J
+Success Rate: 15.9%
+Offload Ratio: 0.000
+================================================================================
+
+
+################################################################################
+# Running MEC policy
+################################################################################
+
+Running MEC policy on s2_random...
+  Progress: 200/2000 (10.0%)
+  Progress: 400/2000 (20.0%)
+  Progress: 600/2000 (30.0%)
+  Progress: 800/2000 (40.0%)
+  Progress: 1000/2000 (50.0%)
+  Progress: 1200/2000 (60.0%)
+  Progress: 1400/2000 (70.0%)
+  Progress: 1600/2000 (80.0%)
+  Progress: 1800/2000 (90.0%)
+  Progress: 2000/2000 (100.0%)
+
+✅ Saved MEC results to results/scenarios/s2_random/mec_metrics.csv
+
+================================================================================
+MEC POLICY SUMMARY
+================================================================================
+Mean QoE: -0.025002
+Mean Latency: 607.520120 s
+Mean Energy: 0.010 J
+Final Battery: 3780.91 J
+Success Rate: 75.0%
+Offload Ratio: 1.000
+================================================================================
+
+
+################################################################################
+# Running CLOUD policy
+################################################################################
+
+Running CLOUD policy on s2_random...
+  Progress: 200/2000 (10.0%)
+  Progress: 400/2000 (20.0%)
+  Progress: 600/2000 (30.0%)
+  Progress: 800/2000 (40.0%)
+  Progress: 1000/2000 (50.0%)
+  Progress: 1200/2000 (60.0%)
+  Progress: 1400/2000 (70.0%)
+  Progress: 1600/2000 (80.0%)
+  Progress: 1800/2000 (90.0%)
+  Progress: 2000/2000 (100.0%)
+
+✅ Saved CLOUD results to results/scenarios/s2_random/cloud_metrics.csv
+
+================================================================================
+CLOUD POLICY SUMMARY
+================================================================================
+Mean QoE: -0.025003
+Mean Latency: 521.621952 s
+Mean Energy: 0.010 J
+Final Battery: 3779.59 J
+Success Rate: 75.0%
+Offload Ratio: 1.000
+================================================================================
+
+
+################################################################################
+# Running RANDOM policy
+################################################################################
+
+Running RANDOM policy on s2_random...
+  Progress: 200/2000 (10.0%)
+  Progress: 400/2000 (20.0%)
+  Progress: 600/2000 (30.0%)
+  Progress: 800/2000 (40.0%)
+
+✅ Saved RANDOM results to results/scenarios/s2_random/random_metrics.csv
+
+================================================================================
+RANDOM POLICY SUMMARY
+================================================================================
+Mean QoE: -0.069942
+Mean Latency: 322.828049 s
+Mean Energy: 1.955 J
+Final Battery: 0.00 J
+Success Rate: 33.2%
+Offload Ratio: 0.313
+================================================================================
+
+
+================================================================================
+BASELINE COMPARISON SUMMARY
+================================================================================
+Policy              Mean QoE   Final Battery    Success Rate
+--------------------------------------------------------------------------------
+local              -0.087822            0.00 J          15.9%
+mec                -0.025002         3780.91 J          75.0%
+cloud              -0.025003         3779.59 J          75.0%
+random             -0.069942            0.00 J          33.2%
+--------------------------------------------------------------------------------
+
+✅ All baseline results saved to: results/scenarios/s2_random/
+================================================================================
+
+[s2_random] ✓ Baselines complete
+
+
+================================================================================
+[s2_random] Training RL Agent
+================================================================================
+
+
+============================================================
+GPU DIAGNOSTICS
+============================================================
+PyTorch version: 2.9.0
+CUDA available: True
+CUDA version: 12.6
+cuDNN version: 90501
+Number of GPUs: 1
+
+GPU 0: NVIDIA H100 80GB HBM3 MIG 2g.20gb
+  Memory allocated: 0.07 GB
+  Memory reserved: 0.07 GB
+  Max memory allocated: 0.07 GB
+
+Current CUDA device: 0
+CUDA_VISIBLE_DEVICES: MIG-3de2563c-0966-5e12-8acf-685fc9a106c5
+============================================================
+
+
+[train_rl_on_scenario] Using device: cuda
+
+================================================================================
+TRAINING ON SCENARIO: Scenario 2 - Random Distribution
+================================================================================
+Description: Communication failure 500-1000; equal task distribution
+Task Distribution: Class1=33.0%, Class2=34.0%, Class3=33.0%
+Total timesteps: 2000
+Training episodes: 200
+================================================================================
+
+State dimension: 13
+Action space: 3 (local, MEC, cloud)
+
+Actor device: cuda:0
+Critic device: cuda:0
+
+Starting training...
+
+Episode    1/200 | steps= 1298 | return=   -6.159 | avg_return(10)=   -6.159 | battery=   0.00 J
+Episode   10/200 | steps= 5208 | return=  -12.804 | avg_return(10)=  -21.169 | battery=   0.00 J
+Episode   20/200 | steps= 5127 | return=   -7.463 | avg_return(10)=  -11.200 | battery=   0.00 J
+Episode   30/200 | steps= 5183 | return=  -15.718 | avg_return(10)=  -14.066 | battery=   0.00 J
+Episode   40/200 | steps= 5107 | return=  -14.918 | avg_return(10)=  -16.918 | battery=   0.00 J
+Episode   50/200 | steps= 5090 | return=  -28.158 | avg_return(10)=  -11.404 | battery=   0.00 J
+Episode   60/200 | steps= 5207 | return=  -13.547 | avg_return(10)=  -16.417 | battery=   0.00 J
+Episode   70/200 | steps= 4887 | return=  -82.881 | avg_return(10)=  -21.488 | battery=   0.00 J
+Episode   80/200 | steps= 5104 | return=  -10.298 | avg_return(10)=  -20.520 | battery=   0.00 J
+Episode   90/200 | steps= 5042 | return=   -7.260 | avg_return(10)=  -12.879 | battery=   0.00 J
+Episode  100/200 | steps= 5079 | return=  -15.083 | avg_return(10)=  -15.373 | battery=   0.00 J
+Episode  110/200 | steps= 5177 | return=  -14.088 | avg_return(10)=  -14.604 | battery=   0.00 J
+Episode  120/200 | steps= 4548 | return=   -9.412 | avg_return(10)=  -20.407 | battery=   0.00 J
+Episode  130/200 | steps= 5116 | return=  -22.501 | avg_return(10)=  -19.248 | battery=   0.00 J
+Episode  140/200 | steps= 5151 | return=  -19.655 | avg_return(10)=  -19.008 | battery=   0.00 J
+Episode  150/200 | steps= 5203 | return=  -70.303 | avg_return(10)=  -25.255 | battery=   0.00 J
+Episode  160/200 | steps= 5117 | return=  -39.040 | avg_return(10)=  -20.102 | battery=   0.00 J
+Episode  170/200 | steps= 5229 | return=  -28.547 | avg_return(10)=  -21.188 | battery=   0.00 J
+Episode  180/200 | steps= 5155 | return=  -29.571 | avg_return(10)=  -25.052 | battery=   0.00 J
+Episode  190/200 | steps= 5111 | return=  -11.202 | avg_return(10)=  -21.921 | battery=   0.00 J
+Episode  200/200 | steps= 5472 | return=  -63.501 | avg_return(10)=  -30.781 | battery=   0.00 J
+
+================================================================================
+TRAINING SUMMARY
+================================================================================
+Scenario: Scenario 2 - Random Distribution
+Total episodes: 200
+Final episode return: -63.501
+Avg return (last 10): -30.781
+Best episode return: -5.718
+================================================================================
+
+✅ Saved actor to results/scenarios/s2_random/actor.pt
+✅ Saved critic to results/scenarios/s2_random/critic.pt
+
+[s2_random] ✓ RL training complete
+
+
+================================================================================
+[s2_random] Evaluating RL Agent
+================================================================================
+
+
+================================================================================
+EVALUATING RL AGENT ON: Scenario 2 - Random Distribution
+================================================================================
+Loading model from: results/scenarios/s2_random
+
+✅ Loaded trained actor from results/scenarios/s2_random/actor.pt
+
+Running evaluation...
+  Progress: 200/2000 (10.0%)
+  Progress: 400/2000 (20.0%)
+  Progress: 600/2000 (30.0%)
+  Progress: 800/2000 (40.0%)
+  Progress: 1000/2000 (50.0%)
+  Progress: 1200/2000 (60.0%)
+  Progress: 1400/2000 (70.0%)
+  Progress: 1600/2000 (80.0%)
+  Progress: 1800/2000 (90.0%)
+  Progress: 2000/2000 (100.0%)
+
+✅ Saved evaluation results to results/scenarios/s2_random/rl_agent_metrics.csv
+
+================================================================================
+EVALUATION SUMMARY
+================================================================================
+Mean QoE: -0.000468
+Mean Latency: 0.034675 s
+Mean Energy: 1.215 J
+Final Battery: 1549.98 J
+Success Rate: 100.0%
+Offload Ratio: 0.796
+================================================================================
+
+[s2_random] ✓ RL evaluation complete
+  Mean QoE: -0.000468
+  Final Battery: 1549.98 J
+  Success Rate: 100.0%
+
+[s2_random] Time elapsed: 61.5 minutes
+
+
+================================================================================
+GENERATING PLOTS
+================================================================================
+
+Generating Scenario 2 complete figure...
+
+Generating Scenario 2 Complete Figure...
+
+Processing s2_class1_90...
+  ✓ s2_class1_90 plotted
+
+Processing s2_class2_90...
+  ✓ s2_class2_90 plotted
+
+Processing s2_class3_90...
+  ✓ s2_class3_90 plotted
+
+Processing s2_random...
+  ✓ s2_random plotted
+
+
+✅ Scenario 2 figure saved to: results/scenarios/scenario_2_complete_figure.png
+
+✓ Scenario 2 plots generated
+
+
+================================================================================
+ALL SCENARIOS COMPLETE
+================================================================================
+Total time: 269.5 minutes
+
+RL Agent Results Summary:
+--------------------------------------------------------------------------------
+Scenario                 Mean QoE   Final Battery    Success Rate
+--------------------------------------------------------------------------------
+s2_class1_90            -0.005865            0.00 J         100.0%
+s2_class2_90            -0.000463         1567.54 J         100.0%
+s2_class3_90            -0.000524         1380.03 J         100.0%
+s2_random               -0.000468         1549.98 J         100.0%
+--------------------------------------------------------------------------------
+
+Results saved to: /project/6083487/yuvraj/dynamic_offloading_using_deep_RL/results/scenarios/
+================================================================================
+
+
+End time: Thu Dec 11 02:02:24 EST 2025
+
+=====================================
+✓ ALL SCENARIOS COMPLETED SUCCESSFULLY
+=====================================
+
+Results location: /project/6083487/yuvraj/dynamic_offloading_using_deep_RL/results/scenarios/
+Logs location: /project/6083487/yuvraj/dynamic_offloading_using_deep_RL/logs/
+
+=====================================
+OUTPUT FILES
+=====================================
+Scenario directories:
+results/scenarios/s1_class1_90/
+results/scenarios/s1_class2_90/
+results/scenarios/s1_class3_90/
+results/scenarios/s2_class1_90/
+results/scenarios/s2_class2_90/
+results/scenarios/s2_class3_90/
+results/scenarios/s2_random/
+
+CSV files:
+results/scenarios/s1_class1_90/cloud_metrics.csv
+results/scenarios/s1_class1_90/local_metrics.csv
+results/scenarios/s1_class1_90/mec_metrics.csv
+results/scenarios/s1_class1_90/random_metrics.csv
+results/scenarios/s1_class1_90/rl_agent_metrics.csv
+results/scenarios/s1_class2_90/cloud_metrics.csv
+results/scenarios/s1_class2_90/local_metrics.csv
+results/scenarios/s1_class2_90/mec_metrics.csv
+results/scenarios/s1_class2_90/random_metrics.csv
+results/scenarios/s1_class2_90/rl_agent_metrics.csv
+
+Model files:
+results/scenarios/s1_class1_90/actor.pt
+results/scenarios/s1_class1_90/critic.pt
+results/scenarios/s1_class2_90/actor.pt
+results/scenarios/s1_class2_90/critic.pt
+results/scenarios/s2_class1_90/actor.pt
+results/scenarios/s2_class1_90/critic.pt
+results/scenarios/s2_class2_90/actor.pt
+results/scenarios/s2_class2_90/critic.pt
+results/scenarios/s2_class3_90/actor.pt
+results/scenarios/s2_class3_90/critic.pt
+
+Plot files:
+results/scenarios/scenario_2_complete_figure.png
+
+=====================================
+ Job Finished
+=====================================
