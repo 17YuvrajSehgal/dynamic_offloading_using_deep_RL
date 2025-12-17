@@ -2,10 +2,10 @@
 """
 run_baselines_scenario.py
 
-Run baseline policies (local, MEC, cloud, random) on specific scenarios
-for comparison with RL agents. Matches the paper's evaluation methodology.
-
-Supports both Scenario 1 (MEC unavailability) and Scenario 2 (communication failure).
+Run baseline policies (Always-Local, Always-MEC, Always-Cloud, Random, Greedy-by-Size)
+on specific scenarios for comparison with RL agents. Matches the paper's evaluation
+methodology for both Scenario 1 (MEC unavailability) and Scenario 2 (communication
+failure).
 
 Usage:
     # Run all baselines on a scenario
@@ -21,15 +21,18 @@ Usage:
 import argparse
 import os
 import sys
-from pathlib import Path
 from typing import Dict
 
 import numpy as np
 import pandas as pd
 
+from offload_rl.EnvConfig import EnvConfig
+from offload_rl.models import UE, BaseStation, MECServer, CloudServer, TaskFactory
 from scenario_config import get_scenario, list_scenarios, ALL_SCENARIOS
-from EnvConfig import EnvConfig
-from models import UE, BaseStation, MECServer, CloudServer, TaskFactory
+
+# Greedy-by-Size threshold (in bits). Tasks with D_i >= D_TH_BITS are offloaded
+# to the MEC, smaller ones are processed locally.
+ # 100 KB in bits
 
 
 class BaselineSimulator:
@@ -82,7 +85,7 @@ class BaselineSimulator:
         Run a baseline policy on the scenario.
         
         Args:
-            policy: 'local', 'mec', 'cloud', or 'random'
+            policy: 'local', 'mec', 'cloud', 'random', or 'greedy_by_size' / 'greedy'
             timesteps: Number of timesteps (default: from scenario)
         
         Returns:
@@ -149,6 +152,9 @@ class BaselineSimulator:
                 action = 1
             elif policy == "cloud":
                 action = 2
+            elif policy in ("greedy_by_size", "greedy"):
+                # Greedy-by-Size: offload large tasks to MEC, otherwise local.
+                action = 1 if task.data_bits >= EnvConfig.GREEDY_SIZE_THRESHOLD_BITS else 0
             else:
                 raise ValueError(f"Unknown policy: {policy}")
             
@@ -276,7 +282,8 @@ def run_all_baselines(
     print(f"{'='*80}\n")
     
     simulator = BaselineSimulator(scenario_key)
-    policies = ["local", "mec", "cloud", "random"]
+    # Always-Local, Always-MEC, Always-Cloud, Random, Greedy-by-Size
+    policies = ["local", "mec", "cloud", "random", "greedy_by_size"]
     
     results_summary = []
     
@@ -334,7 +341,7 @@ def main():
     parser.add_argument(
         "--policy",
         type=str,
-        choices=["local", "mec", "cloud", "random"],
+        choices=["local", "mec", "cloud", "random", "greedy_by_size", "greedy"],
         help="Baseline policy to run",
     )
     

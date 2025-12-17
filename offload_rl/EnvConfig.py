@@ -112,4 +112,6 @@ class EnvConfig:
     # Entropy coefficient for exploration (not in paper, but standard)
     AC_ENTROPY_COEFF = 0.01
 
+    GREEDY_SIZE_THRESHOLD_BITS = 100e3 * 8
+
 

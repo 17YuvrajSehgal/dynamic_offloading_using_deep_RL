@@ -32,10 +32,11 @@ import numpy as np
 import torch
 
 from scenario_config import get_scenario, list_scenarios, ALL_SCENARIOS
-from EnvConfig import EnvConfig
-from models import UE, BaseStation, MECServer, CloudServer
-from rl_env import OffloadEnv
-from ac_agent import ActorCriticAgent
+from offload_rl.EnvConfig import EnvConfig
+from offload_rl.models import UE, BaseStation, MECServer, CloudServer
+from offload_rl.rl_env import OffloadEnv
+from offload_rl.ac_agent import ActorCriticAgent
+from run_baselines_scenario import run_all_baselines
 
 
 def make_scenario_env(scenario_key: str, ue_index: int = 0) -> OffloadEnv:
@@ -389,7 +390,7 @@ def main():
     parser.add_argument(
         "--full-pipeline",
         action="store_true",
-        help="Run full pipeline: train + eval",
+        help="Run full pipeline: baselines + train RL + eval RL",
     )
     
     args = parser.parse_args()
@@ -412,16 +413,27 @@ def main():
         print("\nUse --list to see full details")
         sys.exit(1)
     
-    # Full pipeline
+    # Full pipeline: run baselines + train RL + evaluate RL.
     if args.full_pipeline:
         print("\n" + "="*80)
         print("RUNNING FULL PIPELINE")
         print("="*80)
+
+        # 1) Baselines (Always-Local, Always-MEC, Always-Cloud, Random, Greedy-by-Size)
+        run_all_baselines(
+            args.scenario,
+            timesteps=None,
+            output_dir="results/scenarios",
+        )
+
+        # 2) Train RL
         train_rl_on_scenario(
             args.scenario,
             episodes=args.episodes,
             device=args.device,
         )
+
+        # 3) Evaluate RL
         evaluate_rl_on_scenario(
             args.scenario,
             device=args.device,
