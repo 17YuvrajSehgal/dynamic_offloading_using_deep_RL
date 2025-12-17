@@ -1,6 +1,7 @@
+from typing import Tuple, List
+
 import numpy as np
 import torch
-from typing import Tuple, List
 
 from .EnvConfig import EnvConfig
 from .models import UE, BaseStation, MECServer, CloudServer, TaskFactory, Task

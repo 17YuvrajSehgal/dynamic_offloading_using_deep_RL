@@ -12,7 +12,8 @@ Each scenario specifies:
 """
 
 from dataclasses import dataclass
-from typing import List, Tuple, Optional
+from typing import List, Tuple
+
 import numpy as np
 
 

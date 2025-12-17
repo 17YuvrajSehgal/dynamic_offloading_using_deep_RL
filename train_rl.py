@@ -16,9 +16,9 @@ import numpy as np
 import torch
 
 from offload_rl.EnvConfig import EnvConfig
+from offload_rl.ac_agent import ActorCriticAgent
 from offload_rl.models import UE, BaseStation, MECServer, CloudServer
 from offload_rl.rl_env import OffloadEnv
-from offload_rl.ac_agent import ActorCriticAgent
 
 
 def print_gpu_info():

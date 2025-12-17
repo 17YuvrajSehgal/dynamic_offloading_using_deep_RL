@@ -26,10 +26,9 @@ import argparse
 from pathlib import Path
 from typing import Dict, List
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-
 
 # Order + naming
 POLICY_ORDER = ["cloud", "local", "mec", "random", "rl_agent", "greedy_by_size", "greedy"]

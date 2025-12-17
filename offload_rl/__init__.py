@@ -12,6 +12,7 @@ Core components for the dynamic task offloading RL experiments:
 """
 
 from .EnvConfig import EnvConfig  # noqa: F401
+from .ac_agent import ActorCriticAgent  # noqa: F401
 from .models import (  # noqa: F401
     Task,
     TaskFactory,
@@ -21,7 +22,6 @@ from .models import (  # noqa: F401
     CloudServer,
 )
 from .rl_env import OffloadEnv  # noqa: F401
-from .ac_agent import ActorCriticAgent  # noqa: F401
 from .scenario_config import (  # noqa: F401
     ScenarioConfig,
     ALL_SCENARIOS,

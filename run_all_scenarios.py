@@ -27,14 +27,10 @@ import argparse
 import os
 import sys
 import time
-from pathlib import Path
 
-import torch
-
-from scenario_config import ALL_SCENARIOS, get_scenario, list_scenarios
-from run_scenario import train_rl_on_scenario, evaluate_rl_on_scenario
 from run_baselines_scenario import run_all_baselines
-
+from run_scenario import train_rl_on_scenario, evaluate_rl_on_scenario
+from scenario_config import ALL_SCENARIOS, get_scenario, list_scenarios
 
 SCENARIO_SETS = {
     's1': ['s1_class1_90', 's1_class2_90', 's1_class3_90', 's1_random'],

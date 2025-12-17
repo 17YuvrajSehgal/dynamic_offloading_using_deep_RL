@@ -9,17 +9,16 @@ Usage:
     python plot_scenario_results.py --scenario s1 --results-dir results/scenarios
 """
 
-import os
 import argparse
+import os
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict
 
+import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 from matplotlib.gridspec import GridSpec
-
 
 # Color scheme matching the paper
 COLORS = {
