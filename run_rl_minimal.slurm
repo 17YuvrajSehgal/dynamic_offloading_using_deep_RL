@@ -19,6 +19,17 @@ mkdir -p logs
 
 cd "$SLURM_SUBMIT_DIR"
 
+#------------------------------
+# 1) Load modules
+#------------------------------
+echo "[SETUP] Loading modules..."
+module purge
+module load python/3.13.2
+
+echo "[SETUP] Loaded modules:"
+module list
+echo ""
+
 # Activate virtualenv (assumes .venv exists in project root)
 source .venv/bin/activate
 

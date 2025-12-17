@@ -80,9 +80,9 @@ def train(
     
     print(f"[train_rl] Selected device: {device}")
 
-    if device == "cuda":
-        print("GPU memory allocated:", torch.cuda.memory_allocated() / 1e9, "GB")
-        print("GPU memory reserved:", torch.cuda.memory_reserved() / 1e9, "GB")
+    # if device == "cuda":
+    #     print("GPU memory allocated:", torch.cuda.memory_allocated() / 1e9, "GB")
+    #     print("GPU memory reserved:", torch.cuda.memory_reserved() / 1e9, "GB")
 
     # Verify device is actually available
     if device == "cuda" and not torch.cuda.is_available():
@@ -108,10 +108,10 @@ def train(
         device=device,
     )
 
-    if device == "cuda":
-        print("[DEBUG] After agent creation:")
-        print("  GPU memory allocated:", torch.cuda.memory_allocated() / 1e9, "GB")
-        print("  GPU memory reserved:", torch.cuda.memory_reserved() / 1e9, "GB")
+    # if device == "cuda":
+    #     print("[DEBUG] After agent creation:")
+    #     print("  GPU memory allocated:", torch.cuda.memory_allocated() / 1e9, "GB")
+    #     print("  GPU memory reserved:", torch.cuda.memory_reserved() / 1e9, "GB")
     
     # Verify models are on correct device
     print(f"[train_rl] Actor device: {next(agent.actor.parameters()).device}")
@@ -159,10 +159,10 @@ def train(
                 ep_tasks += 1
                 ep_successes += int(info["success"])
 
-            if device == "cuda" and steps == 5:
-                print("[DEBUG] After 5 steps:")
-                print("  GPU memory allocated:", torch.cuda.memory_allocated() / 1e9, "GB")
-                print("  GPU memory reserved:", torch.cuda.memory_reserved() / 1e9, "GB")
+            # if device == "cuda" and steps == 5:
+            #     print("[DEBUG] After 5 steps:")
+            #     print("  GPU memory allocated:", torch.cuda.memory_allocated() / 1e9, "GB")
+            #     print("  GPU memory reserved:", torch.cuda.memory_reserved() / 1e9, "GB")
             
             # Safety check to prevent infinite loops
             if steps > 100000:
@@ -212,9 +212,9 @@ def train(
     print("✅ Saved critic weights to results/critic_offloading.pt")
     
     # Print final GPU memory usage if using CUDA
-    if device == "cuda":
-        print(f"\nFinal GPU memory allocated: {torch.cuda.memory_allocated() / 1e9:.2f} GB")
-        print(f"Peak GPU memory allocated: {torch.cuda.max_memory_allocated() / 1e9:.2f} GB")
+    # if device == "cuda":
+    #     print(f"\nFinal GPU memory allocated: {torch.cuda.memory_allocated() / 1e9:.2f} GB")
+    #     print(f"Peak GPU memory allocated: {torch.cuda.max_memory_allocated() / 1e9:.2f} GB")
 
     return all_returns
 
