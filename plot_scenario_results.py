@@ -24,12 +24,13 @@ from matplotlib.gridspec import GridSpec
 # Color scheme matching the paper
 COLORS = {
     'Join-Networks AC': '#1f77b4',      # Blue
-    'DDDQN': '#d62728',                  # Red
-    'cloud': '#8c564b',                  # Brown
-    'mec': '#2ca02c',                    # Green
-    'random': '#9467bd',                 # Purple
-    'local': '#ff7f0e',                  # Orange
-    'SeparatedNetworks AC': '#e377c2',   # Pink
+    'DDDQN': '#d62728',                 # Red
+    'cloud': '#8c564b',                 # Brown
+    'mec': '#2ca02c',                   # Green
+    'random': '#9467bd',                # Purple
+    'local': '#ff7f0e',                 # Orange
+    'SeparatedNetworks AC': '#e377c2',  # Pink (RL agent)
+    'Greedy By Size': '#000000',        # Black for Greedy-by-Size baseline
 }
 
 DECISION_COLORS = {
@@ -70,7 +71,7 @@ def load_scenario_results(results_dir: str, scenario: str) -> Dict[str, pd.DataF
         print(f"Loaded RL results: {len(results['RL-Agent'])} timesteps")
     
     # Load baseline results (if they exist)
-    for baseline in ['local', 'mec', 'cloud', 'random']:
+    for baseline in ['local', 'mec', 'cloud', 'random', 'greedy_by_size']:
         baseline_file = scenario_dir / f"{baseline}_metrics.csv"
         if baseline_file.exists():
             results[baseline] = pd.read_csv(baseline_file)

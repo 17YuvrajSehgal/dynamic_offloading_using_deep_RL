@@ -36,8 +36,8 @@ def load_scenario_results(scenario_key: str, results_dir: str = "results/scenari
     
     results = {}
     
-    # Load baselines
-    for method in ['local', 'mec', 'cloud', 'random']:
+    # Load baselines (Always-Local, Always-MEC, Always-Cloud, Random, Greedy-by-Size)
+    for method in ['local', 'mec', 'cloud', 'random', 'greedy_by_size']:
         csv_path = os.path.join(scenario_dir, f"{method}_metrics.csv")
         if os.path.exists(csv_path):
             results[method] = pd.read_csv(csv_path)
@@ -58,12 +58,13 @@ def plot_qoe(ax, results: dict, title: str, show_ylabel: bool = True):
     """
     Plot QoE over time for all methods.
     """
-    # Plot order and colors (matching paper)
+    # Plot order and colors (matching paper; Greedy-by-Size added)
     plot_config = [
         ('cloud', 'brown', '-', 'cloud'),
         ('mec', 'green', '-', 'mec'),
         ('random', 'gray', '-', 'random'),
         ('local', 'pink', '-', 'local'),
+        ('greedy_by_size', 'black', '-', 'Greedy-By-Size'),
         ('rl_agent', 'orange', '-', 'SeparatedNetworks AC'),
     ]
     
@@ -98,6 +99,7 @@ def plot_battery(ax, results: dict, title: str, show_ylabel: bool = True):
         ('mec', 'green', '-o', 'mec'),
         ('random', 'gray', '-o', 'random'),
         ('local', 'pink', '-o', 'local'),
+        ('greedy_by_size', 'black', '-o', 'Greedy-By-Size'),
         ('rl_agent', 'orange', '-o', 'SeparatedNetworks AC'),
     ]
     
@@ -277,6 +279,7 @@ def create_scenario_2_figure(results_dir: str = "results/scenarios"):
             plt.Line2D([0], [0], color='green', linewidth=2, label='mec'),
             plt.Line2D([0], [0], color='gray', linewidth=2, label='random'),
             plt.Line2D([0], [0], color='pink', linewidth=2, label='local'),
+            plt.Line2D([0], [0], color='black', linewidth=2, label='Greedy-By-Size'),
             plt.Line2D([0], [0], color='orange', linewidth=2, label='SeparatedNetworks AC'),
         ]
         
@@ -290,7 +293,7 @@ def create_scenario_2_figure(results_dir: str = "results/scenarios"):
         
         # Place legends at bottom
         fig.legend(handles=legend_elements_lines, loc='lower center', 
-                  ncol=5, fontsize=10, bbox_to_anchor=(0.35, 0.00), frameon=True)
+                  ncol=6, fontsize=10, bbox_to_anchor=(0.35, 0.00), frameon=True)
         fig.legend(handles=legend_elements_patches, loc='lower center',
                   ncol=4, fontsize=10, bbox_to_anchor=(0.75, 0.00), frameon=True)
     
