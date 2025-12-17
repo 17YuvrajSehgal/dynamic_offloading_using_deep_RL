@@ -69,6 +69,7 @@ def train(
     lr_actor: float = 1e-5,
     lr_critic: float = 1e-4,
     device: str = None,
+    log_every: int = 10,
 ):
     # Print GPU diagnostics
     print_gpu_info()
@@ -134,6 +135,12 @@ def train(
         ep_return = 0.0
         steps = 0
 
+        # Debug counters
+        ep_offload_actions = 0  # how many times we chose MEC or Cloud
+        ep_local_actions = 0    # how many times we chose Local
+        ep_successes = 0
+        ep_tasks = 0
+
         while not done:
             action = agent.select_action(state)
             next_state, reward, done, info = env.step(action)
@@ -141,6 +148,16 @@ def train(
             state = next_state
             ep_return += reward
             steps += 1
+
+            # ---------------- Debug bookkeeping ----------------
+            if action in (1, 2):
+                ep_offload_actions += 1
+            else:
+                ep_local_actions += 1
+
+            if "success" in info:
+                ep_tasks += 1
+                ep_successes += int(info["success"])
 
             if device == "cuda" and steps == 5:
                 print("[DEBUG] After 5 steps:")
@@ -154,14 +171,24 @@ def train(
 
         all_returns.append(ep_return)
         all_steps.append(steps)
-        
-        if (ep + 1) % 10 == 0 or ep == 0:
-            avg_return_last_10 = np.mean(all_returns[-10:])
-            avg_steps_last_10 = np.mean(all_steps[-10:])
+
+        # Episode-level debug stats
+        total_actions = ep_offload_actions + ep_local_actions
+        offload_ratio = ep_offload_actions / max(1, total_actions)
+        success_rate = ep_successes / max(1, ep_tasks)
+
+        if (ep + 1) % log_every == 0 or ep == 0:
+            avg_return_last = np.mean(all_returns[-log_every:])
+            avg_steps_last = np.mean(all_steps[-log_every:])
             print(
-                f"Episode {ep + 1:03d} | steps={steps:5d} | "
-                f"return={ep_return:9.3f} | battery={info.get('battery', 0):7.2f} J | "
-                f"avg_return(10)={avg_return_last_10:9.3f} | avg_steps(10)={avg_steps_last_10:6.1f}"
+                f"Episode {ep + 1:03d} | "
+                f"steps={steps:5d} | "
+                f"return={ep_return:9.3f} | "
+                f"battery={info.get('battery', 0):7.2f} J | "
+                f"offload_ratio={offload_ratio:5.2f} | "
+                f"success_rate={success_rate:5.2f} | "
+                f"avg_return({log_every})={avg_return_last:9.3f} | "
+                f"avg_steps({log_every})={avg_steps_last:6.1f}"
             )
             sys.stdout.flush()  # Force flush for cluster logs
 
@@ -198,6 +225,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--episodes', type=int, default=50, help='Number of training episodes')
     parser.add_argument('--device', type=str, default=None, choices=['cuda', 'cpu'], help='Device to use')
+    parser.add_argument('--log-every', type=int, default=10, help='Episode interval for detailed debug logging')
     args = parser.parse_args()
     
-    train(episodes=args.episodes, device=args.device)
+    train(episodes=args.episodes, device=args.device, log_every=args.log_every)
