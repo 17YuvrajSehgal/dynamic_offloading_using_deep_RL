@@ -27,7 +27,7 @@ EPISODES=200
 
 # What to do
 DO_TRAIN=true      # Train agents
-DO_EVAL=true       # Evaluate agents  
+DO_EVAL=true       # Evaluate agents
 DO_PLOT=true       # Generate plots
 
 echo "[CONFIG] Scenario Set: $SCENARIO_SET"
@@ -219,51 +219,6 @@ EXIT_CODE=$?
 echo ""
 echo "End time: $(date)"
 echo ""
-
-#------------------------------
-# 11) Report results
-#------------------------------
-if [ $EXIT_CODE -eq 0 ]; then
-    echo "====================================="
-    echo "✓ ALL SCENARIOS COMPLETED SUCCESSFULLY"
-    echo "====================================="
-else
-    echo "====================================="
-    echo "✗ JOB FAILED WITH EXIT CODE: $EXIT_CODE"
-    echo "====================================="
-fi
-
-echo ""
-echo "Results location: $(pwd)/results/scenarios/"
-echo "Logs location: $(pwd)/logs/"
-echo ""
-
-#------------------------------
-# 12) Show output files
-#------------------------------
-echo "====================================="
-echo "OUTPUT FILES"
-echo "====================================="
-
-if [ -d "results/scenarios" ]; then
-    echo "Scenario directories:"
-    ls -d results/scenarios/*/ 2>/dev/null | head -10
-    echo ""
-    
-    echo "CSV files:"
-    find results/scenarios -name "*.csv" -type f | head -10
-    echo ""
-    
-    echo "Model files:"
-    find results/scenarios -name "*.pt" -type f | head -10
-    echo ""
-    
-    echo "Plot files:"
-    find results/scenarios -name "*.png" -type f | head -10
-    echo ""
-else
-    echo "[WARNING] Results directory not found"
-fi
 
 echo "====================================="
 echo " Job Finished"
