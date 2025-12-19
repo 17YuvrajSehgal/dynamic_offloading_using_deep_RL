@@ -42,18 +42,19 @@ class TaskFactory:
             cls = random.choices([1, 2, 3], weights=[1, 1, 1], k=1)[0]
 
         # --- Class-specific parameter generation ---
-        if cls == 1:  # Delay-sensitive: small, strict deadline
-            D_i = random.uniform(10e3, 40e3) * 8  # bytes→bits
-            phi = D_i * 8                          # 8 cycles/bit (from Table 3)
-            T_i = 0.5e-3 * (D_i / 8.0)            # short deadline
-        elif cls == 2:  # Energy-sensitive: medium, moderate deadline
+        if cls == 1:
+            D_i = random.uniform(10e3, 40e3) * 8  # bits (10–40 KB)
+            phi = 8 * D_i  # cycles
+            T_i = 0.5e-3 * (D_i / (8 * 1e3))  # seconds
+        elif cls == 2:
             D_i = random.uniform(20e3, 50e3) * 8
             phi = 8 * D_i
-            T_i = 1e-3 * (D_i / 8.0)
-        else:  # cls == 3 → insensitive (large, loose deadline)
+            T_i = 1e-3 * (D_i / (8 * 1e3))  # seconds
+        else:  # cls == 3
             D_i = random.uniform(200e3, 400e3) * 8
             phi = 8 * D_i
-            T_i = 2e-3 * (D_i / 8.0)
+            T_i = 2e-3 * (D_i / (8 * 1e3))  # seconds
+
         return Task(D_i, phi, T_i, cls)
 
 

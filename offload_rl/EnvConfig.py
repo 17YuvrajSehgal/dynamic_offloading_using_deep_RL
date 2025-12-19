@@ -10,7 +10,8 @@ class EnvConfig:
     # ===== CLOUD SERVER CONFIG =====
     # F^c: Cloud computation resources (Table 2)
     CLOUD_TRANSMISSION_POWER = 10e9  # 10 GHz
-    CLOUD_FIBER_DISTANCE = 50.0      # 50 meters (distance from BS to Cloud)
+    CLOUD_FIBER_DISTANCE = 1000000.0  # 1000 km (realistic)
+
 
     # ===== OPTICAL FIBER CONFIG =====
     # Based on paper's fiber link model
