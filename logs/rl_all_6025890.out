@@ -1,8 +1,8 @@
 ====================================
  RL All Scenarios Job Started
- Job ID: 5971643
- Node: g32
- Time: Wed Dec 17 21:02:22 EST 2025
+ Job ID: 6025890
+ Node: g30
+ Time: Thu Dec 18 22:13:04 EST 2025
 ====================================
 
 [CONFIG] Scenario Set: s2
@@ -54,12 +54,12 @@ GPU name: NVIDIA H100 80GB HBM3 MIG 1g.10gb
 =====================================
 ENVIRONMENT VARIABLES
 =====================================
-SLURM_JOB_ID: 5971643
+SLURM_JOB_ID: 6025890
 SLURM_JOB_NAME: rl_all_s2
-SLURM_NODELIST: g32
+SLURM_NODELIST: g30
 SLURM_CPUS_PER_TASK: 4
 SLURM_MEM_PER_NODE: 32768
-CUDA_VISIBLE_DEVICES: MIG-dbf3b193-b7f0-5361-a6aa-9db5b7f9defd
+CUDA_VISIBLE_DEVICES: MIG-ba7859c1-a377-57cf-a799-b2d94d5b5277
 
 [SETUP] Setting CPU threading limits...
 [SETUP] OMP_NUM_THREADS=4
@@ -68,7 +68,7 @@ CUDA_VISIBLE_DEVICES: MIG-dbf3b193-b7f0-5361-a6aa-9db5b7f9defd
 =====================================
 GPU DIAGNOSTICS (nvidia-smi)
 =====================================
-Wed Dec 17 21:02:26 2025       
+Thu Dec 18 22:13:09 2025       
 +-----------------------------------------------------------------------------------------+
 | NVIDIA-SMI 580.82.07              Driver Version: 580.82.07      CUDA Version: 13.0     |
 +-----------------------------------------+------------------------+----------------------+
@@ -76,8 +76,8 @@ Wed Dec 17 21:02:26 2025
 | Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
 |                                         |                        |               MIG M. |
 |=========================================+========================+======================|
-|   0  NVIDIA H100 80GB HBM3          On  |   00000000:4C:00.0 Off |                   On |
-| N/A   46C    P0            449W /  700W |   16792MiB /  81559MiB |     N/A      Default |
+|   0  NVIDIA H100 80GB HBM3          On  |   00000000:19:00.0 Off |                   On |
+| N/A   37C    P0            187W /  700W |   17204MiB /  81559MiB |     N/A      Default |
 |                                         |                        |              Enabled |
 +-----------------------------------------+------------------------+----------------------+
 
@@ -88,7 +88,7 @@ Wed Dec 17 21:02:26 2025
 |      ID  ID  Dev |                Shared BAR1-Usage | SM     Unc| CE ENC  DEC  OFA  JPG |
 |                  |                                  |        ECC|                       |
 |==================+==================================+===========+=======================|
-|  0    9   0   0  |              15MiB /  9984MiB    | 16      0 |  1   0    1    0    1 |
+|  0   10   0   0  |              15MiB /  9984MiB    | 16      0 |  1   0    1    0    1 |
 |                  |               0MiB /  6185MiB    |           |                       |
 +------------------+----------------------------------+-----------+-----------------------+
 
@@ -213,7 +213,7 @@ all:
 =====================================
 RUNNING ALL SCENARIOS: s2
 =====================================
-Start time: Wed Dec 17 21:02:32 EST 2025
+Start time: Thu Dec 18 22:13:15 EST 2025
 
 [CMD] python -u run_all_scenarios.py --scenario-set s2 --episodes 200 --all --train --eval --plot
 
@@ -265,11 +265,11 @@ Running LOCAL policy on s2_class1_90...
 ================================================================================
 LOCAL POLICY SUMMARY
 ================================================================================
-Mean QoE: -0.057868
-Mean Latency: 0.030539 s
-Mean Energy: 1.955 J
+Mean QoE: -0.098973
+Mean Latency: 0.030518 s
+Mean Energy: 1.953 J
 Final Battery: 0.00 J
-Success Rate: 46.2%
+Success Rate: 2.4%
 Offload Ratio: 0.000
 ================================================================================
 
@@ -296,9 +296,9 @@ Running MEC policy on s2_class1_90...
 MEC POLICY SUMMARY
 ================================================================================
 Mean QoE: -0.025001
-Mean Latency: 105.401222 s
+Mean Latency: 0.118892 s
 Mean Energy: 0.003 J
-Final Battery: 3793.84 J
+Final Battery: 3793.43 J
 Success Rate: 75.0%
 Offload Ratio: 1.000
 ================================================================================
@@ -325,11 +325,11 @@ Running CLOUD policy on s2_class1_90...
 ================================================================================
 CLOUD POLICY SUMMARY
 ================================================================================
-Mean QoE: -0.025001
-Mean Latency: 117.499926 s
+Mean QoE: -0.062401
+Mean Latency: 0.107482 s
 Mean Energy: 0.003 J
-Final Battery: 3793.55 J
-Success Rate: 75.0%
+Final Battery: 3793.59 J
+Success Rate: 37.6%
 Offload Ratio: 1.000
 ================================================================================
 
@@ -355,12 +355,12 @@ Running RANDOM policy on s2_class1_90...
 ================================================================================
 RANDOM POLICY SUMMARY
 ================================================================================
-Mean QoE: -0.017835
-Mean Latency: 75.369516 s
-Mean Energy: 1.442 J
-Final Battery: 916.56 J
-Success Rate: 82.8%
-Offload Ratio: 0.668
+Mean QoE: -0.060690
+Mean Latency: 0.095208 s
+Mean Energy: 1.299 J
+Final Battery: 1202.10 J
+Success Rate: 39.5%
+Offload Ratio: 0.667
 ================================================================================
 
 
@@ -382,12 +382,12 @@ Running GREEDY_BY_SIZE policy on s2_class1_90...
 ================================================================================
 GREEDY_BY_SIZE POLICY SUMMARY
 ================================================================================
-Mean QoE: -0.029239
-Mean Latency: 80.572053 s
-Mean Energy: 1.924 J
+Mean QoE: -0.097202
+Mean Latency: 0.105747 s
+Mean Energy: 1.925 J
 Final Battery: 0.00 J
-Success Rate: 74.7%
-Offload Ratio: 0.034
+Success Rate: 2.8%
+Offload Ratio: 0.040
 ================================================================================
 
 
@@ -396,11 +396,11 @@ BASELINE COMPARISON SUMMARY
 ================================================================================
 Policy              Mean QoE   Final Battery    Success Rate
 --------------------------------------------------------------------------------
-local              -0.057868            0.00 J          46.2%
-mec                -0.025001         3793.84 J          75.0%
-cloud              -0.025001         3793.55 J          75.0%
-random             -0.017835          916.56 J          82.8%
-greedy_by_size     -0.029239            0.00 J          74.7%
+local              -0.098973            0.00 J           2.4%
+mec                -0.025001         3793.43 J          75.0%
+cloud              -0.062401         3793.59 J          37.6%
+random             -0.060690         1202.10 J          39.5%
+greedy_by_size     -0.097202            0.00 J           2.8%
 --------------------------------------------------------------------------------
 
 ✅ All baseline results saved to: results/scenarios/s2_class1_90/
@@ -429,7 +429,7 @@ GPU 0: NVIDIA H100 80GB HBM3 MIG 1g.10gb
   Max memory allocated: 0.00 GB
 
 Current CUDA device: 0
-CUDA_VISIBLE_DEVICES: MIG-dbf3b193-b7f0-5361-a6aa-9db5b7f9defd
+CUDA_VISIBLE_DEVICES: MIG-ba7859c1-a377-57cf-a799-b2d94d5b5277
 ============================================================
 
 
@@ -452,36 +452,36 @@ Critic device: cuda:0
 
 Starting training...
 
-Episode    1/200 | steps= 3910 | return=  -13.683 | avg_return(10)=  -13.683 | battery=   0.00 J
-Episode   10/200 | steps= 5306 | return=  -11.287 | avg_return(10)=  -18.922 | battery=   0.00 J
-Episode   20/200 | steps= 5041 | return=  -10.264 | avg_return(10)=  -12.554 | battery=   0.00 J
-Episode   30/200 | steps= 5157 | return=  -15.210 | avg_return(10)=  -26.894 | battery=   0.00 J
-Episode   40/200 | steps= 5160 | return=   -9.928 | avg_return(10)=  -10.704 | battery=   0.00 J
-Episode   50/200 | steps= 5124 | return=   -7.653 | avg_return(10)=  -10.957 | battery=   0.00 J
-Episode   60/200 | steps= 5047 | return=  -15.281 | avg_return(10)=  -11.685 | battery=   0.00 J
-Episode   70/200 | steps= 5106 | return=   -9.442 | avg_return(10)=  -13.376 | battery=   0.00 J
-Episode   80/200 | steps= 5113 | return=  -16.759 | avg_return(10)=  -19.930 | battery=   0.00 J
-Episode   90/200 | steps= 5065 | return=   -9.021 | avg_return(10)=  -11.109 | battery=   0.00 J
-Episode  100/200 | steps= 5140 | return=  -14.092 | avg_return(10)=  -12.543 | battery=   0.00 J
-Episode  110/200 | steps= 5209 | return=   -9.869 | avg_return(10)=  -15.719 | battery=   0.00 J
-Episode  120/200 | steps= 5008 | return=   -7.801 | avg_return(10)=  -28.099 | battery=   0.00 J
-Episode  130/200 | steps= 5139 | return=  -10.653 | avg_return(10)=  -11.892 | battery=   0.00 J
-Episode  140/200 | steps= 5054 | return=  -17.172 | avg_return(10)=  -12.194 | battery=   0.00 J
-Episode  150/200 | steps= 5178 | return=  -15.150 | avg_return(10)=  -15.419 | battery=   0.00 J
-Episode  160/200 | steps= 5199 | return=  -18.877 | avg_return(10)=  -26.089 | battery=   0.00 J
-Episode  170/200 | steps= 5005 | return=  -12.518 | avg_return(10)=  -17.969 | battery=   0.00 J
-Episode  180/200 | steps= 5082 | return= -216.778 | avg_return(10)=  -34.752 | battery=   0.00 J
-Episode  190/200 | steps= 4899 | return=  -10.055 | avg_return(10)=  -18.921 | battery=   0.00 J
-Episode  200/200 | steps= 5100 | return=  -17.210 | avg_return(10)=  -14.619 | battery=   0.00 J
+Episode    1/200 | steps= 7881 | return= -321.708 | avg_return(10)= -321.708 | battery=   0.00 J
+Episode   10/200 | steps= 6440 | return= -145.554 | avg_return(10)= -181.933 | battery=   0.00 J
+Episode   20/200 | steps= 6353 | return= -132.198 | avg_return(10)= -142.022 | battery=   0.00 J
+Episode   30/200 | steps= 6272 | return= -136.636 | avg_return(10)= -129.326 | battery=   0.00 J
+Episode   40/200 | steps= 6193 | return= -122.130 | avg_return(10)= -123.637 | battery=   0.00 J
+Episode   50/200 | steps= 6312 | return= -193.905 | avg_return(10)= -143.405 | battery=   0.00 J
+Episode   60/200 | steps= 6361 | return= -126.097 | avg_return(10)= -125.171 | battery=   0.00 J
+Episode   70/200 | steps= 6291 | return= -121.091 | avg_return(10)= -124.054 | battery=   0.00 J
+Episode   80/200 | steps= 6100 | return= -120.082 | avg_return(10)= -127.931 | battery=   0.00 J
+Episode   90/200 | steps= 6383 | return= -139.957 | avg_return(10)= -129.569 | battery=   0.00 J
+Episode  100/200 | steps= 6373 | return= -147.600 | avg_return(10)= -130.241 | battery=   0.00 J
+Episode  110/200 | steps= 6235 | return= -125.249 | avg_return(10)= -126.017 | battery=   0.00 J
+Episode  120/200 | steps= 6286 | return= -124.892 | avg_return(10)= -126.957 | battery=   0.00 J
+Episode  130/200 | steps= 6072 | return= -116.598 | avg_return(10)= -121.165 | battery=   0.00 J
+Episode  140/200 | steps= 6156 | return= -120.109 | avg_return(10)= -124.293 | battery=   0.00 J
+Episode  150/200 | steps= 5973 | return=  -86.820 | avg_return(10)= -120.279 | battery=   0.00 J
+Episode  160/200 | steps= 6088 | return= -122.447 | avg_return(10)= -152.924 | battery=   0.00 J
+Episode  170/200 | steps= 6126 | return= -128.687 | avg_return(10)= -121.568 | battery=   0.00 J
+Episode  180/200 | steps= 6644 | return= -159.308 | avg_return(10)= -129.846 | battery=   0.00 J
+Episode  190/200 | steps= 6451 | return= -155.523 | avg_return(10)= -133.272 | battery=   0.00 J
+Episode  200/200 | steps= 6158 | return= -117.996 | avg_return(10)= -125.261 | battery=   0.00 J
 
 ================================================================================
 TRAINING SUMMARY
 ================================================================================
 Scenario: Scenario 2 - 90% Class 1
 Total episodes: 200
-Final episode return: -17.210
-Avg return (last 10): -14.619
-Best episode return: -6.284
+Final episode return: -117.996
+Avg return (last 10): -125.261
+Best episode return: -86.820
 ================================================================================
 
 ✅ Saved actor to results/scenarios/s2_class1_90/actor.pt
@@ -519,20 +519,20 @@ Running evaluation...
 ================================================================================
 EVALUATION SUMMARY
 ================================================================================
-Mean QoE: -0.000301
-Mean Latency: 0.018232 s
-Mean Energy: 0.903 J
-Final Battery: 2173.27 J
-Success Rate: 100.0%
-Offload Ratio: 0.704
+Mean QoE: -0.000414
+Mean Latency: 0.010075 s
+Mean Energy: 0.242 J
+Final Battery: 3495.34 J
+Success Rate: 99.7%
+Offload Ratio: 0.991
 ================================================================================
 
 [s2_class1_90] ✓ RL evaluation complete
-  Mean QoE: -0.000301
-  Final Battery: 2173.27 J
-  Success Rate: 100.0%
+  Mean QoE: -0.000414
+  Final Battery: 3495.34 J
+  Success Rate: 99.7%
 
-[s2_class1_90] Time elapsed: 70.0 minutes
+[s2_class1_90] Time elapsed: 88.4 minutes
 
 
 ################################################################################
@@ -562,18 +562,17 @@ Running LOCAL policy on s2_class2_90...
   Progress: 200/2000 (10.0%)
   Progress: 400/2000 (20.0%)
   Progress: 600/2000 (30.0%)
-  Progress: 800/2000 (40.0%)
 
 ✅ Saved LOCAL results to results/scenarios/s2_class2_90/local_metrics.csv
 
 ================================================================================
 LOCAL POLICY SUMMARY
 ================================================================================
-Mean QoE: -0.062861
-Mean Latency: 0.030620 s
-Mean Energy: 1.960 J
+Mean QoE: -0.098790
+Mean Latency: 0.030666 s
+Mean Energy: 1.963 J
 Final Battery: 0.00 J
-Success Rate: 40.5%
+Success Rate: 2.2%
 Offload Ratio: 0.000
 ================================================================================
 
@@ -600,9 +599,9 @@ Running MEC policy on s2_class2_90...
 MEC POLICY SUMMARY
 ================================================================================
 Mean QoE: -0.025001
-Mean Latency: 143.603412 s
+Mean Latency: 0.165259 s
 Mean Energy: 0.004 J
-Final Battery: 3791.90 J
+Final Battery: 3792.36 J
 Success Rate: 75.0%
 Offload Ratio: 1.000
 ================================================================================
@@ -629,11 +628,11 @@ Running CLOUD policy on s2_class2_90...
 ================================================================================
 CLOUD POLICY SUMMARY
 ================================================================================
-Mean QoE: -0.025001
-Mean Latency: 141.122474 s
+Mean QoE: -0.027151
+Mean Latency: 0.142943 s
 Mean Energy: 0.004 J
-Final Battery: 3792.09 J
-Success Rate: 75.0%
+Final Battery: 3792.07 J
+Success Rate: 72.9%
 Offload Ratio: 1.000
 ================================================================================
 
@@ -659,12 +658,12 @@ Running RANDOM policy on s2_class2_90...
 ================================================================================
 RANDOM POLICY SUMMARY
 ================================================================================
-Mean QoE: -0.017475
-Mean Latency: 104.179956 s
-Mean Energy: 1.592 J
-Final Battery: 616.06 J
-Success Rate: 83.4%
-Offload Ratio: 0.663
+Mean QoE: -0.048368
+Mean Latency: 0.132448 s
+Mean Energy: 1.533 J
+Final Battery: 734.50 J
+Success Rate: 51.8%
+Offload Ratio: 0.682
 ================================================================================
 
 
@@ -684,12 +683,12 @@ Running GREEDY_BY_SIZE policy on s2_class2_90...
 ================================================================================
 GREEDY_BY_SIZE POLICY SUMMARY
 ================================================================================
-Mean QoE: -0.060672
-Mean Latency: 103.343167 s
-Mean Energy: 1.945 J
+Mean QoE: -0.098101
+Mean Latency: 0.093316 s
+Mean Energy: 1.943 J
 Final Battery: 0.00 J
-Success Rate: 56.0%
-Offload Ratio: 0.026
+Success Rate: 1.9%
+Offload Ratio: 0.030
 ================================================================================
 
 
@@ -698,11 +697,11 @@ BASELINE COMPARISON SUMMARY
 ================================================================================
 Policy              Mean QoE   Final Battery    Success Rate
 --------------------------------------------------------------------------------
-local              -0.062861            0.00 J          40.5%
-mec                -0.025001         3791.90 J          75.0%
-cloud              -0.025001         3792.09 J          75.0%
-random             -0.017475          616.06 J          83.4%
-greedy_by_size     -0.060672            0.00 J          56.0%
+local              -0.098790            0.00 J           2.2%
+mec                -0.025001         3792.36 J          75.0%
+cloud              -0.027151         3792.07 J          72.9%
+random             -0.048368          734.50 J          51.8%
+greedy_by_size     -0.098101            0.00 J           1.9%
 --------------------------------------------------------------------------------
 
 ✅ All baseline results saved to: results/scenarios/s2_class2_90/
@@ -731,7 +730,7 @@ GPU 0: NVIDIA H100 80GB HBM3 MIG 1g.10gb
   Max memory allocated: 0.07 GB
 
 Current CUDA device: 0
-CUDA_VISIBLE_DEVICES: MIG-dbf3b193-b7f0-5361-a6aa-9db5b7f9defd
+CUDA_VISIBLE_DEVICES: MIG-ba7859c1-a377-57cf-a799-b2d94d5b5277
 ============================================================
 
 
@@ -754,36 +753,36 @@ Critic device: cuda:0
 
 Starting training...
 
-Episode    1/200 | steps= 3198 | return=   -7.912 | avg_return(10)=   -7.912 | battery=   0.00 J
-Episode   10/200 | steps= 5071 | return=  -18.698 | avg_return(10)=  -15.036 | battery=   0.00 J
-Episode   20/200 | steps= 5037 | return=   -9.941 | avg_return(10)=   -9.778 | battery=   0.00 J
-Episode   30/200 | steps= 5033 | return=  -10.116 | avg_return(10)=  -10.487 | battery=   0.00 J
-Episode   40/200 | steps= 5042 | return=  -14.801 | avg_return(10)=  -11.634 | battery=   0.00 J
-Episode   50/200 | steps= 5854 | return=  -81.106 | avg_return(10)=  -29.292 | battery=   0.00 J
-Episode   60/200 | steps= 5074 | return=  -19.201 | avg_return(10)= -109.587 | battery=   0.00 J
-Episode   70/200 | steps= 5328 | return=  -30.414 | avg_return(10)= -121.653 | battery=   0.00 J
-Episode   80/200 | steps= 7444 | return= -243.691 | avg_return(10)= -241.451 | battery=   0.00 J
-Episode   90/200 | steps= 6786 | return= -191.916 | avg_return(10)= -237.146 | battery=   0.00 J
-Episode  100/200 | steps= 6689 | return= -177.717 | avg_return(10)= -158.905 | battery=   0.00 J
-Episode  110/200 | steps= 5942 | return= -102.758 | avg_return(10)= -228.897 | battery=   0.00 J
-Episode  120/200 | steps= 8194 | return= -321.176 | avg_return(10)= -310.296 | battery=   0.00 J
-Episode  130/200 | steps= 7609 | return= -257.489 | avg_return(10)= -249.929 | battery=   0.00 J
-Episode  140/200 | steps= 6722 | return= -174.927 | avg_return(10)= -236.521 | battery=   0.00 J
-Episode  150/200 | steps= 6712 | return= -183.851 | avg_return(10)= -259.027 | battery=   0.00 J
-Episode  160/200 | steps= 6093 | return= -114.671 | avg_return(10)= -215.532 | battery=   0.00 J
-Episode  170/200 | steps= 6203 | return= -134.331 | avg_return(10)= -192.786 | battery=   0.00 J
-Episode  180/200 | steps= 6714 | return= -172.068 | avg_return(10)= -120.676 | battery=   0.00 J
-Episode  190/200 | steps= 7978 | return= -290.784 | avg_return(10)= -196.343 | battery=   0.00 J
-Episode  200/200 | steps= 6843 | return= -222.033 | avg_return(10)= -169.915 | battery=   0.00 J
+Episode    1/200 | steps= 9189 | return= -434.188 | avg_return(10)= -434.188 | battery=   0.00 J
+Episode   10/200 | steps= 6387 | return= -134.102 | avg_return(10)= -195.743 | battery=   0.00 J
+Episode   20/200 | steps= 6297 | return= -137.176 | avg_return(10)= -141.423 | battery=   0.00 J
+Episode   30/200 | steps= 6082 | return= -112.703 | avg_return(10)= -122.976 | battery=   0.00 J
+Episode   40/200 | steps= 6446 | return= -137.739 | avg_return(10)= -123.039 | battery=   0.00 J
+Episode   50/200 | steps= 6352 | return= -134.543 | avg_return(10)= -116.022 | battery=   0.00 J
+Episode   60/200 | steps= 6030 | return= -110.814 | avg_return(10)= -157.826 | battery=   0.00 J
+Episode   70/200 | steps= 6507 | return= -139.718 | avg_return(10)= -113.200 | battery=   0.00 J
+Episode   80/200 | steps= 6393 | return= -136.110 | avg_return(10)= -131.920 | battery=   0.00 J
+Episode   90/200 | steps= 6196 | return= -122.298 | avg_return(10)= -114.270 | battery=   0.00 J
+Episode  100/200 | steps= 6210 | return= -124.187 | avg_return(10)= -117.863 | battery=   0.00 J
+Episode  110/200 | steps= 6150 | return= -115.484 | avg_return(10)= -119.559 | battery=   0.00 J
+Episode  120/200 | steps= 6083 | return= -109.365 | avg_return(10)= -104.808 | battery=   0.00 J
+Episode  130/200 | steps= 6125 | return= -110.302 | avg_return(10)= -106.686 | battery=   0.00 J
+Episode  140/200 | steps= 6226 | return= -119.074 | avg_return(10)= -117.909 | battery=   0.00 J
+Episode  150/200 | steps= 6052 | return= -104.873 | avg_return(10)= -121.222 | battery=   0.00 J
+Episode  160/200 | steps= 6350 | return= -130.829 | avg_return(10)= -123.535 | battery=   0.00 J
+Episode  170/200 | steps= 6061 | return= -115.092 | avg_return(10)= -115.513 | battery=   0.00 J
+Episode  180/200 | steps= 5956 | return= -102.644 | avg_return(10)= -106.967 | battery=   0.00 J
+Episode  190/200 | steps= 6319 | return= -126.174 | avg_return(10)= -116.599 | battery=   0.00 J
+Episode  200/200 | steps= 6061 | return= -113.479 | avg_return(10)= -111.898 | battery=   0.00 J
 
 ================================================================================
 TRAINING SUMMARY
 ================================================================================
 Scenario: Scenario 2 - 90% Class 2
 Total episodes: 200
-Final episode return: -222.033
-Avg return (last 10): -169.915
-Best episode return: -5.770
+Final episode return: -113.479
+Avg return (last 10): -111.898
+Best episode return: -72.727
 ================================================================================
 
 ✅ Saved actor to results/scenarios/s2_class2_90/actor.pt
@@ -821,20 +820,20 @@ Running evaluation...
 ================================================================================
 EVALUATION SUMMARY
 ================================================================================
-Mean QoE: -0.000474
-Mean Latency: 0.024448 s
-Mean Energy: 1.223 J
-Final Battery: 1534.35 J
-Success Rate: 100.0%
-Offload Ratio: 0.720
+Mean QoE: -0.000416
+Mean Latency: 0.015667 s
+Mean Energy: 0.250 J
+Final Battery: 3480.22 J
+Success Rate: 99.7%
+Offload Ratio: 0.991
 ================================================================================
 
 [s2_class2_90] ✓ RL evaluation complete
-  Mean QoE: -0.000474
-  Final Battery: 1534.35 J
-  Success Rate: 100.0%
+  Mean QoE: -0.000416
+  Final Battery: 3480.22 J
+  Success Rate: 99.7%
 
-[s2_class2_90] Time elapsed: 88.8 minutes
+[s2_class2_90] Time elapsed: 86.4 minutes
 
 
 ################################################################################
@@ -867,11 +866,11 @@ Running LOCAL policy on s2_class3_90...
 ================================================================================
 LOCAL POLICY SUMMARY
 ================================================================================
-Mean QoE: -0.096395
-Mean Latency: 0.031241 s
-Mean Energy: 1.999 J
+Mean QoE: -0.096260
+Mean Latency: 0.031160 s
+Mean Energy: 1.994 J
 Final Battery: 0.00 J
-Success Rate: 7.0%
+Success Rate: 6.4%
 Offload Ratio: 0.000
 ================================================================================
 
@@ -898,9 +897,9 @@ Running MEC policy on s2_class3_90...
 MEC POLICY SUMMARY
 ================================================================================
 Mean QoE: -0.025006
-Mean Latency: 1359.640810 s
-Mean Energy: 0.023 J
-Final Battery: 3754.90 J
+Mean Latency: 1.413403 s
+Mean Energy: 0.022 J
+Final Battery: 3755.22 J
 Success Rate: 75.0%
 Offload Ratio: 1.000
 ================================================================================
@@ -927,11 +926,11 @@ Running CLOUD policy on s2_class3_90...
 ================================================================================
 CLOUD POLICY SUMMARY
 ================================================================================
-Mean QoE: -0.025006
-Mean Latency: 1381.394773 s
+Mean QoE: -0.026906
+Mean Latency: 1.349407 s
 Mean Energy: 0.023 J
-Final Battery: 3754.89 J
-Success Rate: 75.0%
+Final Battery: 3754.44 J
+Success Rate: 73.1%
 Offload Ratio: 1.000
 ================================================================================
 
@@ -942,19 +941,18 @@ Offload Ratio: 1.000
 
 Running RANDOM policy on s2_class3_90...
   Progress: 200/2000 (10.0%)
-  Progress: 400/2000 (20.0%)
 
 ✅ Saved RANDOM results to results/scenarios/s2_class3_90/random_metrics.csv
 
 ================================================================================
 RANDOM POLICY SUMMARY
 ================================================================================
-Mean QoE: -0.078372
-Mean Latency: 67.396719 s
-Mean Energy: 1.982 J
+Mean QoE: -0.085288
+Mean Latency: 0.036797 s
+Mean Energy: 1.994 J
 Final Battery: 0.00 J
-Success Rate: 25.6%
-Offload Ratio: 0.198
+Success Rate: 18.8%
+Offload Ratio: 0.127
 ================================================================================
 
 
@@ -979,12 +977,12 @@ Running GREEDY_BY_SIZE policy on s2_class3_90...
 ================================================================================
 GREEDY_BY_SIZE POLICY SUMMARY
 ================================================================================
-Mean QoE: -0.022641
-Mean Latency: 1332.430692 s
-Mean Energy: 0.323 J
-Final Battery: 3153.79 J
-Success Rate: 77.5%
-Offload Ratio: 0.900
+Mean QoE: -0.031806
+Mean Latency: 1.375906 s
+Mean Energy: 0.314 J
+Final Battery: 3172.12 J
+Success Rate: 68.2%
+Offload Ratio: 0.906
 ================================================================================
 
 
@@ -993,11 +991,11 @@ BASELINE COMPARISON SUMMARY
 ================================================================================
 Policy              Mean QoE   Final Battery    Success Rate
 --------------------------------------------------------------------------------
-local              -0.096395            0.00 J           7.0%
-mec                -0.025006         3754.90 J          75.0%
-cloud              -0.025006         3754.89 J          75.0%
-random             -0.078372            0.00 J          25.6%
-greedy_by_size     -0.022641         3153.79 J          77.5%
+local              -0.096260            0.00 J           6.4%
+mec                -0.025006         3755.22 J          75.0%
+cloud              -0.026906         3754.44 J          73.1%
+random             -0.085288            0.00 J          18.8%
+greedy_by_size     -0.031806         3172.12 J          68.2%
 --------------------------------------------------------------------------------
 
 ✅ All baseline results saved to: results/scenarios/s2_class3_90/
@@ -1026,7 +1024,7 @@ GPU 0: NVIDIA H100 80GB HBM3 MIG 1g.10gb
   Max memory allocated: 0.07 GB
 
 Current CUDA device: 0
-CUDA_VISIBLE_DEVICES: MIG-dbf3b193-b7f0-5361-a6aa-9db5b7f9defd
+CUDA_VISIBLE_DEVICES: MIG-ba7859c1-a377-57cf-a799-b2d94d5b5277
 ============================================================
 
 
@@ -1049,36 +1047,36 @@ Critic device: cuda:0
 
 Starting training...
 
-Episode    1/200 | steps=  610 | return=   -6.297 | avg_return(10)=   -6.297 | battery=   0.00 J
-Episode   10/200 | steps= 5363 | return=  -22.930 | avg_return(10)=  -23.978 | battery=   0.00 J
-Episode   20/200 | steps= 5145 | return=  -13.335 | avg_return(10)=  -14.212 | battery=   0.00 J
-Episode   30/200 | steps= 5036 | return=  -16.884 | avg_return(10)=  -12.884 | battery=   0.00 J
-Episode   40/200 | steps= 5263 | return=  -26.719 | avg_return(10)=  -17.161 | battery=   0.00 J
-Episode   50/200 | steps= 5247 | return=  -31.475 | avg_return(10)=  -31.021 | battery=   0.00 J
-Episode   60/200 | steps= 5059 | return=  -24.939 | avg_return(10)=  -35.981 | battery=   0.00 J
-Episode   70/200 | steps= 5269 | return= -912.453 | avg_return(10)= -129.351 | battery=   0.00 J
-Episode   80/200 | steps= 5528 | return=  -49.696 | avg_return(10)=  -48.096 | battery=   0.00 J
-Episode   90/200 | steps= 5312 | return=  -29.393 | avg_return(10)=  -36.639 | battery=   0.00 J
-Episode  100/200 | steps= 5534 | return=  -61.831 | avg_return(10)=  -44.150 | battery=   0.00 J
-Episode  110/200 | steps= 5586 | return=  -64.951 | avg_return(10)=  -52.975 | battery=   0.00 J
-Episode  120/200 | steps= 5588 | return=  -60.956 | avg_return(10)=  -43.752 | battery=   0.00 J
-Episode  130/200 | steps= 5408 | return=  -41.957 | avg_return(10)=  -50.368 | battery=   0.00 J
-Episode  140/200 | steps= 5856 | return=  -89.587 | avg_return(10)=  -51.326 | battery=   0.00 J
-Episode  150/200 | steps= 5441 | return=  -43.847 | avg_return(10)=  -51.467 | battery=   0.00 J
-Episode  160/200 | steps= 6157 | return= -109.225 | avg_return(10)=  -64.109 | battery=   0.00 J
-Episode  170/200 | steps= 5622 | return=  -58.982 | avg_return(10)=  -62.214 | battery=   0.00 J
-Episode  180/200 | steps= 5541 | return=  -68.451 | avg_return(10)=  -81.603 | battery=   0.00 J
-Episode  190/200 | steps= 5351 | return=  -43.869 | avg_return(10)=  -87.017 | battery=   0.00 J
-Episode  200/200 | steps= 5792 | return=  -85.707 | avg_return(10)=  -77.181 | battery=   0.00 J
+Episode    1/200 | steps=  787 | return=   -9.595 | avg_return(10)=   -9.595 | battery=   0.00 J
+Episode   10/200 | steps= 4956 | return=  -13.574 | avg_return(10)=  -64.479 | battery=   0.00 J
+Episode   20/200 | steps= 5000 | return=  -10.338 | avg_return(10)=  -14.062 | battery=   0.00 J
+Episode   30/200 | steps= 5026 | return=  -10.018 | avg_return(10)=   -9.990 | battery=   0.00 J
+Episode   40/200 | steps= 5120 | return=   -9.608 | avg_return(10)=  -14.460 | battery=   0.00 J
+Episode   50/200 | steps= 6845 | return= -198.023 | avg_return(10)=  -80.760 | battery=   0.00 J
+Episode   60/200 | steps= 7565 | return= -263.635 | avg_return(10)= -287.777 | battery=   0.00 J
+Episode   70/200 | steps= 8918 | return= -399.333 | avg_return(10)= -328.613 | battery=   0.00 J
+Episode   80/200 | steps= 8840 | return= -395.679 | avg_return(10)= -236.853 | battery=   0.00 J
+Episode   90/200 | steps= 8659 | return= -388.774 | avg_return(10)= -288.326 | battery=   0.00 J
+Episode  100/200 | steps= 8004 | return= -314.375 | avg_return(10)= -271.562 | battery=   0.00 J
+Episode  110/200 | steps= 5800 | return=  -82.433 | avg_return(10)= -163.598 | battery=   0.00 J
+Episode  120/200 | steps= 5549 | return=  -59.140 | avg_return(10)= -150.522 | battery=   0.00 J
+Episode  130/200 | steps= 6070 | return= -117.872 | avg_return(10)= -142.627 | battery=   0.00 J
+Episode  140/200 | steps= 5967 | return= -112.329 | avg_return(10)= -139.763 | battery=   0.00 J
+Episode  150/200 | steps= 5755 | return=  -80.559 | avg_return(10)= -120.334 | battery=   0.00 J
+Episode  160/200 | steps= 6315 | return= -232.127 | avg_return(10)= -184.026 | battery=   0.00 J
+Episode  170/200 | steps= 6708 | return= -203.225 | avg_return(10)= -181.710 | battery=   0.00 J
+Episode  180/200 | steps= 5572 | return=  -50.387 | avg_return(10)= -193.319 | battery=   0.00 J
+Episode  190/200 | steps= 5337 | return=  -43.694 | avg_return(10)= -213.246 | battery=   0.00 J
+Episode  200/200 | steps= 7297 | return= -252.412 | avg_return(10)= -107.593 | battery=   0.00 J
 
 ================================================================================
 TRAINING SUMMARY
 ================================================================================
 Scenario: Scenario 2 - 90% Class 3
 Total episodes: 200
-Final episode return: -85.707
-Avg return (last 10): -77.181
-Best episode return: -6.297
+Final episode return: -252.412
+Avg return (last 10): -107.593
+Best episode return: -6.598
 ================================================================================
 
 ✅ Saved actor to results/scenarios/s2_class3_90/actor.pt
@@ -1116,20 +1114,20 @@ Running evaluation...
 ================================================================================
 EVALUATION SUMMARY
 ================================================================================
-Mean QoE: -0.000956
-Mean Latency: 0.063350 s
-Mean Energy: 1.706 J
-Final Battery: 567.95 J
-Success Rate: 100.0%
-Offload Ratio: 0.912
+Mean QoE: -0.000586
+Mean Latency: 0.058780 s
+Mean Energy: 0.982 J
+Final Battery: 2015.96 J
+Success Rate: 99.8%
+Offload Ratio: 0.966
 ================================================================================
 
 [s2_class3_90] ✓ RL evaluation complete
-  Mean QoE: -0.000956
-  Final Battery: 567.95 J
-  Success Rate: 100.0%
+  Mean QoE: -0.000586
+  Final Battery: 2015.96 J
+  Success Rate: 99.8%
 
-[s2_class3_90] Time elapsed: 73.7 minutes
+[s2_class3_90] Time elapsed: 87.9 minutes
 
 
 ################################################################################
@@ -1163,11 +1161,11 @@ Running LOCAL policy on s2_random...
 ================================================================================
 LOCAL POLICY SUMMARY
 ================================================================================
-Mean QoE: -0.087884
-Mean Latency: 0.031135 s
-Mean Energy: 1.993 J
+Mean QoE: -0.097518
+Mean Latency: 0.031114 s
+Mean Energy: 1.991 J
 Final Battery: 0.00 J
-Success Rate: 15.8%
+Success Rate: 5.4%
 Offload Ratio: 0.000
 ================================================================================
 
@@ -1194,9 +1192,9 @@ Running MEC policy on s2_random...
 MEC POLICY SUMMARY
 ================================================================================
 Mean QoE: -0.025003
-Mean Latency: 546.518618 s
+Mean Latency: 0.553077 s
 Mean Energy: 0.010 J
-Final Battery: 3780.44 J
+Final Battery: 3779.35 J
 Success Rate: 75.0%
 Offload Ratio: 1.000
 ================================================================================
@@ -1223,11 +1221,11 @@ Running CLOUD policy on s2_random...
 ================================================================================
 CLOUD POLICY SUMMARY
 ================================================================================
-Mean QoE: -0.025003
-Mean Latency: 532.684067 s
-Mean Energy: 0.010 J
-Final Battery: 3780.03 J
-Success Rate: 75.0%
+Mean QoE: -0.038602
+Mean Latency: 0.588260 s
+Mean Energy: 0.009 J
+Final Battery: 3781.61 J
+Success Rate: 61.4%
 Offload Ratio: 1.000
 ================================================================================
 
@@ -1241,19 +1239,18 @@ Running RANDOM policy on s2_random...
   Progress: 400/2000 (20.0%)
   Progress: 600/2000 (30.0%)
   Progress: 800/2000 (40.0%)
-  Progress: 1000/2000 (50.0%)
 
 ✅ Saved RANDOM results to results/scenarios/s2_random/random_metrics.csv
 
 ================================================================================
 RANDOM POLICY SUMMARY
 ================================================================================
-Mean QoE: -0.080876
-Mean Latency: 364.659022 s
-Mean Energy: 1.964 J
+Mean QoE: -0.082788
+Mean Latency: 0.330399 s
+Mean Energy: 1.961 J
 Final Battery: 0.00 J
-Success Rate: 37.2%
-Offload Ratio: 0.374
+Success Rate: 20.6%
+Offload Ratio: 0.307
 ================================================================================
 
 
@@ -1277,12 +1274,12 @@ Running GREEDY_BY_SIZE policy on s2_random...
 ================================================================================
 GREEDY_BY_SIZE POLICY SUMMARY
 ================================================================================
-Mean QoE: -0.021134
-Mean Latency: 473.278769 s
-Mean Energy: 1.910 J
+Mean QoE: -0.078811
+Mean Latency: 0.548884 s
+Mean Energy: 1.909 J
 Final Battery: 0.00 J
-Success Rate: 82.5%
-Offload Ratio: 0.291
+Success Rate: 21.2%
+Offload Ratio: 0.296
 ================================================================================
 
 
@@ -1291,11 +1288,11 @@ BASELINE COMPARISON SUMMARY
 ================================================================================
 Policy              Mean QoE   Final Battery    Success Rate
 --------------------------------------------------------------------------------
-local              -0.087884            0.00 J          15.8%
-mec                -0.025003         3780.44 J          75.0%
-cloud              -0.025003         3780.03 J          75.0%
-random             -0.080876            0.00 J          37.2%
-greedy_by_size     -0.021134            0.00 J          82.5%
+local              -0.097518            0.00 J           5.4%
+mec                -0.025003         3779.35 J          75.0%
+cloud              -0.038602         3781.61 J          61.4%
+random             -0.082788            0.00 J          20.6%
+greedy_by_size     -0.078811            0.00 J          21.2%
 --------------------------------------------------------------------------------
 
 ✅ All baseline results saved to: results/scenarios/s2_random/
@@ -1324,7 +1321,7 @@ GPU 0: NVIDIA H100 80GB HBM3 MIG 1g.10gb
   Max memory allocated: 0.07 GB
 
 Current CUDA device: 0
-CUDA_VISIBLE_DEVICES: MIG-dbf3b193-b7f0-5361-a6aa-9db5b7f9defd
+CUDA_VISIBLE_DEVICES: MIG-ba7859c1-a377-57cf-a799-b2d94d5b5277
 ============================================================
 
 
@@ -1347,36 +1344,36 @@ Critic device: cuda:0
 
 Starting training...
 
-Episode    1/200 | steps= 1398 | return=   -5.486 | avg_return(10)=   -5.486 | battery=   0.00 J
-Episode   10/200 | steps= 5078 | return=  -13.168 | avg_return(10)=  -13.178 | battery=   0.00 J
-Episode   20/200 | steps= 5100 | return=  -11.981 | avg_return(10)=  -39.108 | battery=   0.00 J
-Episode   30/200 | steps= 5222 | return= -127.462 | avg_return(10)=  -23.518 | battery=   0.00 J
-Episode   40/200 | steps= 5029 | return=  -64.319 | avg_return(10)=  -21.716 | battery=   0.00 J
-Episode   50/200 | steps= 5029 | return=   -8.391 | avg_return(10)=  -12.167 | battery=   0.00 J
-Episode   60/200 | steps= 5175 | return=  -13.467 | avg_return(10)=  -15.814 | battery=   0.00 J
-Episode   70/200 | steps= 4975 | return=  -11.165 | avg_return(10)=  -29.742 | battery=   0.00 J
-Episode   80/200 | steps= 4718 | return=  -10.781 | avg_return(10)=  -15.547 | battery=   0.00 J
-Episode   90/200 | steps= 5087 | return=   -9.085 | avg_return(10)=  -16.406 | battery=   0.00 J
-Episode  100/200 | steps= 5041 | return=  -11.307 | avg_return(10)=  -11.585 | battery=   0.00 J
-Episode  110/200 | steps= 4894 | return=   -8.728 | avg_return(10)=  -16.282 | battery=   0.00 J
-Episode  120/200 | steps= 4906 | return=  -11.280 | avg_return(10)=  -11.820 | battery=   0.00 J
-Episode  130/200 | steps= 5625 | return=  -50.880 | avg_return(10)=  -23.853 | battery=   0.00 J
-Episode  140/200 | steps= 5209 | return=  -31.785 | avg_return(10)=  -36.240 | battery=   0.00 J
-Episode  150/200 | steps= 5138 | return=  -17.612 | avg_return(10)=  -23.148 | battery=   0.00 J
-Episode  160/200 | steps= 4975 | return=  -19.102 | avg_return(10)=  -14.185 | battery=   0.00 J
-Episode  170/200 | steps= 5132 | return=  -13.134 | avg_return(10)=  -13.437 | battery=   0.00 J
-Episode  180/200 | steps= 5291 | return=  -37.127 | avg_return(10)=  -27.849 | battery=   0.00 J
-Episode  190/200 | steps= 4620 | return=  -20.145 | avg_return(10)=  -41.911 | battery=   0.00 J
-Episode  200/200 | steps= 5107 | return=  -13.158 | avg_return(10)=  -18.859 | battery=   0.00 J
+Episode    1/200 | steps= 6625 | return= -221.737 | avg_return(10)= -221.737 | battery=   0.00 J
+Episode   10/200 | steps= 5328 | return=  -25.394 | avg_return(10)=  -66.585 | battery=   0.00 J
+Episode   20/200 | steps= 5291 | return=  -23.491 | avg_return(10)=  -28.028 | battery=   0.00 J
+Episode   30/200 | steps= 4979 | return=  -22.995 | avg_return(10)=  -22.973 | battery=   0.00 J
+Episode   40/200 | steps= 5038 | return=  -12.313 | avg_return(10)=  -19.625 | battery=   0.00 J
+Episode   50/200 | steps= 5117 | return=  -16.628 | avg_return(10)=  -17.133 | battery=   0.00 J
+Episode   60/200 | steps= 4979 | return=  -23.489 | avg_return(10)=  -22.767 | battery=   0.00 J
+Episode   70/200 | steps= 5304 | return=  -47.447 | avg_return(10)=  -50.456 | battery=   0.00 J
+Episode   80/200 | steps= 5643 | return=  -57.682 | avg_return(10)=  -48.829 | battery=   0.00 J
+Episode   90/200 | steps= 5476 | return=  -51.860 | avg_return(10)=  -44.611 | battery=   0.00 J
+Episode  100/200 | steps= 5385 | return=  -53.756 | avg_return(10)=  -60.252 | battery=   0.00 J
+Episode  110/200 | steps= 5450 | return=  -49.222 | avg_return(10)=  -42.920 | battery=   0.00 J
+Episode  120/200 | steps= 5266 | return=  -33.400 | avg_return(10)=  -40.909 | battery=   0.00 J
+Episode  130/200 | steps= 5270 | return=  -38.270 | avg_return(10)=  -41.889 | battery=   0.00 J
+Episode  140/200 | steps= 5492 | return=  -52.081 | avg_return(10)=  -46.381 | battery=   0.00 J
+Episode  150/200 | steps= 5479 | return=  -48.442 | avg_return(10)=  -42.934 | battery=   0.00 J
+Episode  160/200 | steps= 5406 | return=  -40.007 | avg_return(10)= -605.340 | battery=   0.00 J
+Episode  170/200 | steps= 5256 | return=  -29.648 | avg_return(10)=  -35.343 | battery=   0.00 J
+Episode  180/200 | steps= 5576 | return=  -56.822 | avg_return(10)=  -37.814 | battery=   0.00 J
+Episode  190/200 | steps= 5346 | return=  -51.233 | avg_return(10)=  -47.150 | battery=   0.00 J
+Episode  200/200 | steps= 5431 | return=  -49.998 | avg_return(10)=  -43.212 | battery=   0.00 J
 
 ================================================================================
 TRAINING SUMMARY
 ================================================================================
 Scenario: Scenario 2 - Random Distribution
 Total episodes: 200
-Final episode return: -13.158
-Avg return (last 10): -18.859
-Best episode return: -5.486
+Final episode return: -49.998
+Avg return (last 10): -43.212
+Best episode return: -12.313
 ================================================================================
 
 ✅ Saved actor to results/scenarios/s2_random/actor.pt
@@ -1414,20 +1411,20 @@ Running evaluation...
 ================================================================================
 EVALUATION SUMMARY
 ================================================================================
-Mean QoE: -0.000578
-Mean Latency: 0.036574 s
-Mean Energy: 1.369 J
-Final Battery: 1241.73 J
-Success Rate: 100.0%
-Offload Ratio: 0.769
+Mean QoE: -0.000842
+Mean Latency: 0.035240 s
+Mean Energy: 0.996 J
+Final Battery: 1987.94 J
+Success Rate: 99.5%
+Offload Ratio: 0.967
 ================================================================================
 
 [s2_random] ✓ RL evaluation complete
-  Mean QoE: -0.000578
-  Final Battery: 1241.73 J
-  Success Rate: 100.0%
+  Mean QoE: -0.000842
+  Final Battery: 1987.94 J
+  Success Rate: 99.5%
 
-[s2_random] Time elapsed: 71.7 minutes
+[s2_random] Time elapsed: 72.1 minutes
 
 
 ================================================================================
@@ -1459,23 +1456,23 @@ Processing s2_random...
 ================================================================================
 ALL SCENARIOS COMPLETE
 ================================================================================
-Total time: 304.2 minutes
+Total time: 334.9 minutes
 
 RL Agent Results Summary:
 --------------------------------------------------------------------------------
 Scenario                 Mean QoE   Final Battery    Success Rate
 --------------------------------------------------------------------------------
-s2_class1_90            -0.000301         2173.27 J         100.0%
-s2_class2_90            -0.000474         1534.35 J         100.0%
-s2_class3_90            -0.000956          567.95 J         100.0%
-s2_random               -0.000578         1241.73 J         100.0%
+s2_class1_90            -0.000414         3495.34 J          99.7%
+s2_class2_90            -0.000416         3480.22 J          99.7%
+s2_class3_90            -0.000586         2015.96 J          99.8%
+s2_random               -0.000842         1987.94 J          99.5%
 --------------------------------------------------------------------------------
 
 Results saved to: /project/6083487/yuvraj/dynamic_offloading_using_deep_RL/results/scenarios/
 ================================================================================
 
 
-End time: Thu Dec 18 02:06:50 EST 2025
+End time: Fri Dec 19 03:48:09 EST 2025
 
 =====================================
  Job Finished
