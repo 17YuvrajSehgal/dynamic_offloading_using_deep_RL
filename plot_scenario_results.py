@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from matplotlib.gridspec import GridSpec
-
+from scipy.signal import savgol_filter
 
 # Color scheme (keep yours)
 COLORS = {
@@ -43,12 +43,25 @@ SHADE_WINDOWS = {
 SHADE_STYLE = dict(color="red", alpha=0.12, zorder=0)
 
 
-def smooth(data: np.ndarray, window: int = 10) -> np.ndarray:
-    """Apply moving average smoothing."""
-    if len(data) < window:
-        return data
-    kernel = np.ones(window) / window
-    return np.convolve(data, kernel, mode="valid")
+def smooth_series(y: np.ndarray, window: int = 101, poly: int = 3) -> np.ndarray:
+    """
+    Savitzky–Golay smoothing (preserves trends/peaks better than moving average).
+    window must be odd and <= len(y).
+    """
+    y = np.asarray(y, dtype=float)
+    y = np.nan_to_num(y, nan=np.nanmedian(y))
+
+    # Ensure valid odd window
+    if len(y) < 7:
+        return y
+    w = min(window, len(y) if len(y) % 2 == 1 else len(y) - 1)
+    if w < 7:
+        return y
+    if w % 2 == 0:
+        w -= 1
+
+    return savgol_filter(y, window_length=w, polyorder=min(poly, w - 1))
+
 
 
 def load_scenario_results(results_dir: str, scenario: str) -> Dict[str, pd.DataFrame]:
@@ -126,7 +139,8 @@ def plot_scenario_row(
             continue
 
         qoe_vals = pd.to_numeric(df["QoE"], errors="coerce").to_numpy()
-        qoe_smooth = smooth(qoe_vals, window=10)
+        qoe_smooth = smooth_series(qoe_vals, window=101, poly=3)
+
         x = np.arange(len(qoe_smooth))
 
         label = _pretty_label(method)
@@ -184,9 +198,9 @@ def plot_scenario_row(
     else:
         ax_battery.set_xticklabels([])
 
-    # Legend (only once)
-    if show_legend and row_idx == 0:
-        ax_qoe.legend(loc="lower left", fontsize=7, ncol=2, framealpha=0.9)
+    # # Legend (only once)
+    # if show_legend and row_idx == 0:
+    #     ax_qoe.legend(loc="lower left", fontsize=7, ncol=2, framealpha=0.9)
 
 
 def create_complete_figure(
@@ -244,6 +258,19 @@ def create_complete_figure(
         output_file = os.path.join(results_dir, f"{scenario_prefix}_complete_figure_no_decisions.png")
 
     os.makedirs(os.path.dirname(output_file) or ".", exist_ok=True)
+
+    # ---- Global legend (prevents overlap) ----
+    handles, labels = fig.axes[0].get_legend_handles_labels()
+    fig.legend(
+        handles, labels,
+        loc="lower center",
+        ncol=3,
+        frameon=False,
+        bbox_to_anchor=(0.5, -0.01),
+        fontsize=9
+    )
+
+
     plt.savefig(output_file, dpi=300, bbox_inches="tight")
     print(f"\n✅ Figure saved to: {output_file}")
     plt.close(fig)
