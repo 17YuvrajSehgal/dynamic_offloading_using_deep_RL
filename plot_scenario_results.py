@@ -260,16 +260,18 @@ def create_complete_figure(
     os.makedirs(os.path.dirname(output_file) or ".", exist_ok=True)
 
     # ---- Global legend (prevents overlap) ----
+    # ---- Global legend below the figure (no overlap) ----
     handles, labels = fig.axes[0].get_legend_handles_labels()
-    fig.legend(
-        handles, labels,
-        loc="lower center",
-        ncol=3,
-        frameon=False,
-        bbox_to_anchor=(0.5, -0.01),
-        fontsize=9
-    )
 
+    fig.legend(
+        handles,
+        labels,
+        loc="upper center",
+        ncol=6,
+        frameon=False,
+        fontsize=9,
+        bbox_to_anchor=(0.5, -0.04)  # push legend fully outside
+    )
 
     plt.savefig(output_file, dpi=300, bbox_inches="tight")
     print(f"\n✅ Figure saved to: {output_file}")
