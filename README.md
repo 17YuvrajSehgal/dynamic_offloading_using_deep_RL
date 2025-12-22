@@ -254,10 +254,4 @@ Monitor job logs under `logs/` and GPU status via standard cluster tools.
 
 ---
 
-### How to Cite
-
-If you use this code or reproduce these experiments in academic work, please cite the original paper:
-
-> Nieto, G., de la Iglesia, I., Lopez-Novoa, U. et al. **Deep Reinforcement Learning techniques for dynamic task offloading in the 5G edge-cloud continuum.** *J Cloud Comp* 13, 94 (2024). https://doi.org/10.1186/s13677-024-00658-0
-
 
